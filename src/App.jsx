@@ -14,6 +14,7 @@ export default function App() {
   const [selectedBipName, setSelectedBipName] = useState('BIP Sala');
   const [selectedRecapId, setSelectedRecapId] = useState('recap_anak_lahir');
   const [isFlowchartOpen, setIsFlowchartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Reactive Database State
   const [bipData, setBipData] = useState({});
@@ -36,12 +37,19 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenFlowchart={() => setIsFlowchartOpen(true)}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
       {/* Main Workspace Layout */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 70px)' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 70px)', position: 'relative' }}>
         {/* Left Navigation Sidebar */}
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
 
         {/* Content Body */}
         <main style={{ flex: 1, padding: '1.75rem 2rem', overflowY: 'auto' }}>

@@ -96,6 +96,7 @@ body {
   transition: all 0.2s ease;
   border: 1px solid transparent;
   outline: none;
+  touch-action: manipulation;
 }
 
 .btn-primary {
@@ -186,6 +187,7 @@ body {
 .custom-table-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   border: 1px solid var(--border-color);
 }
@@ -195,6 +197,7 @@ body {
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
+  min-width: 650px;
 }
 
 .custom-table th {
@@ -243,18 +246,6 @@ body {
 .badge-purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
 .badge-gray { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
 
-/* Flowchart Visual Box */
-.flow-box {
-  padding: 1rem;
-  border-radius: 12px;
-  text-align: center;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-  background: rgba(30, 41, 59, 0.8);
-}
-.flow-box-add { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
-.flow-box-remove { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
-
 /* Animation Pulse */
 @keyframes pulse-ring {
   0% { transform: scale(0.95); opacity: 0.8; }
@@ -263,4 +254,74 @@ body {
 }
 .live-pulse {
   animation: pulse-ring 2s infinite ease-in-out;
+}
+
+/* ========================================================= */
+/* RESPONSIVE LAYOUT & MOBILE BREAKPOINTS                    */
+/* ========================================================= */
+
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: flex !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Responsive Main Layout Padding */
+  main {
+    padding: 1rem 0.875rem !important;
+  }
+
+  /* Responsive Glass Panels */
+  .glass-panel {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Responsive Headers */
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  h3 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Mobile Drawer Overlay */
+  .sidebar-drawer {
+    position: fixed !important;
+    top: 70px;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 280px !important;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-drawer.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 45;
+  }
 }
