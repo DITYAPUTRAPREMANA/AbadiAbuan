@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, FileSpreadsheet, Layers, Menu, X } from 'lucide-react';
+import { FileSpreadsheet, Layers, Menu, X } from 'lucide-react';
 import { getSheetsConfig } from '../services/sheetsService';
 
 export default function Navbar({ activeTab, setActiveTab, onOpenFlowchart, isMobileMenuOpen, setIsMobileMenuOpen }) {
@@ -20,7 +20,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenFlowchart, isMob
       justifyContent: 'space-between',
       padding: '0 1rem',
     }}>
-      {/* Left Group: Mobile Menu Button & Brand Title */}
+      {/* Left Group: Mobile Menu Button & Brand Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {/* Mobile Hamburger Toggle Button */}
         <button
@@ -33,19 +33,18 @@ export default function Navbar({ activeTab, setActiveTab, onOpenFlowchart, isMob
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
-            flexShrink: 0
-          }}>
-            <Database size={20} color="#ffffff" />
-          </div>
+          {/* Logo Desa Abuan */}
+          <img
+            src="/logo-desa-abuan.svg"
+            alt="Logo Desa Abuan"
+            style={{
+              width: '42px',
+              height: '42px',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))',
+              flexShrink: 0
+            }}
+          />
           <div>
             <h1 style={{ fontSize: '1rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #ffffff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               BIP DESA ABUAN
@@ -59,7 +58,7 @@ export default function Navbar({ activeTab, setActiveTab, onOpenFlowchart, isMob
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {/* Flowchart Button (Icon on mobile, text on desktop) */}
+        {/* Flowchart Button */}
         <button
           onClick={onOpenFlowchart}
           className="btn btn-secondary"

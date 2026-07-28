@@ -20,9 +20,9 @@ export default function BipDatabaseView({ bipData, selectedBipName, setSelectedB
   // Filtered List
   const filteredList = currentList.filter(item => {
     const matchesSearch = (item.nama || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.nik || '').includes(searchTerm) ||
-                          (item.pekerjaan || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.pendidikan || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (item.nik || '').includes(searchTerm) ||
+      (item.pekerjaan || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.pendidikan || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesGender = genderFilter === 'ALL' || item.jenisKelamin === genderFilter;
 
