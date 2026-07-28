@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, GitMerge, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, GitMerge } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, setIsMobileMenuOpen }) {
   const menuItems = [
@@ -63,6 +63,10 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
         style={{
           width: '260px',
           minWidth: '260px',
+          height: 'calc(100vh - 70px)',
+          position: 'sticky',
+          top: '70px',
+          alignSelf: 'flex-start',
           background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(20px)',
           borderRight: '1px solid rgba(255, 255, 255, 0.1)',
@@ -70,76 +74,80 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
           flexDirection: 'column',
           padding: '1.25rem 0.875rem',
           gap: '0.5rem',
-          zIndex: 50
+          overflow: 'hidden', // Non-scrollable sidebar
+          zIndex: 30
         }}
       >
-        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0 }}>
           <p style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             Navigasi Sistem
           </p>
         </div>
 
-        {menuItems.map(item => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleSelectTab(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                padding: '0.75rem 0.875rem',
-                borderRadius: '10px',
-                border: isActive 
-                  ? '1px solid rgba(59, 130, 246, 0.5)' 
-                  : item.highlight 
-                    ? '1px dashed rgba(59, 130, 246, 0.3)' 
-                    : '1px solid transparent',
-                background: isActive 
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)' 
-                  : 'transparent',
-                color: isActive ? '#ffffff' : '#94a3b8',
-                fontWeight: isActive ? '700' : '500',
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                textAlign: 'left'
-              }}
-              className="sidebar-item"
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Icon size={18} color={isActive ? '#60a5fa' : '#64748b'} />
-                <span>{item.label}</span>
-              </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1 }}>
+          {menuItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleSelectTab(item.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  padding: '0.75rem 0.875rem',
+                  borderRadius: '10px',
+                  border: isActive 
+                    ? '1px solid rgba(59, 130, 246, 0.5)' 
+                    : item.highlight 
+                      ? '1px dashed rgba(59, 130, 246, 0.3)' 
+                      : '1px solid transparent',
+                  background: isActive 
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)' 
+                    : 'transparent',
+                  color: isActive ? '#ffffff' : '#94a3b8',
+                  fontWeight: isActive ? '700' : '500',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'left'
+                }}
+                className="sidebar-item"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <Icon size={18} color={isActive ? '#60a5fa' : '#64748b'} />
+                  <span>{item.label}</span>
+                </div>
 
-              {item.badge && (
-                <span style={{
-                  fontSize: '0.6875rem',
-                  padding: '0.15rem 0.45rem',
-                  borderRadius: '6px',
-                  background: isActive ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255, 255, 255, 0.06)',
-                  color: isActive ? '#93c5fd' : '#64748b',
-                  fontWeight: '600'
-                }}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+                {item.badge && (
+                  <span style={{
+                    fontSize: '0.6875rem',
+                    padding: '0.15rem 0.45rem',
+                    borderRadius: '6px',
+                    background: isActive ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+                    color: isActive ? '#93c5fd' : '#64748b',
+                    fontWeight: '600'
+                  }}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Info Card at Bottom */}
         <div style={{
           marginTop: 'auto',
-          padding: '1rem',
+          padding: '0.875rem',
           borderRadius: '12px',
           background: 'rgba(30, 41, 59, 0.4)',
           border: '1px solid rgba(255, 255, 255, 0.05)',
-          fontSize: '0.75rem'
+          fontSize: '0.75rem',
+          flexShrink: 0
         }}>
           <div style={{ fontWeight: '700', color: '#f8fafc', marginBottom: '0.25rem' }}>
             Struktur Dual Database

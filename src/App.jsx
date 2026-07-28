@@ -31,8 +31,8 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Top Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
+      {/* Top Header Navbar (Fixed Height 70px) */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -41,9 +41,9 @@ export default function App() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      {/* Main Workspace Layout */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 70px)', position: 'relative' }}>
-        {/* Left Navigation Sidebar */}
+      {/* Main Workspace Layout (Fixed Remaining Height) */}
+      <div style={{ display: 'flex', flex: 1, height: 'calc(100vh - 70px)', overflow: 'hidden', position: 'relative' }}>
+        {/* Left Navigation Sidebar (Non-scrollable, Fixed Height) */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -51,8 +51,8 @@ export default function App() {
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />
 
-        {/* Content Body */}
-        <main style={{ flex: 1, padding: '1.75rem 2rem', overflowY: 'auto' }}>
+        {/* Content Body (Independent Scroll Area) */}
+        <main style={{ flex: 1, padding: '1.75rem 2rem', overflowY: 'auto', height: '100%' }}>
           {activeTab === 'dashboard' && (
             <Dashboard
               bipData={bipData}
