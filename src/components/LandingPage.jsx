@@ -1,18 +1,19 @@
 import React from 'react';
-import { 
-  Users, 
-  ShieldCheck, 
-  UserCheck, 
-  ArrowRight, 
-  Database, 
-  FileText, 
-  Accessibility, 
-  UserPlus, 
-  UserMinus, 
-  Baby, 
+import {
+  Users,
+  ArrowRight,
+  Database,
+  FileText,
+  Accessibility,
+  UserPlus,
+  UserMinus,
+  Baby,
   Building2,
   CheckCircle2,
-  LogIn
+  LogIn,
+  GraduationCap,
+  Sparkles,
+  Heart
 } from 'lucide-react';
 import { BIP_LOCATIONS } from '../types/bipConstants';
 
@@ -34,10 +35,10 @@ export default function LandingPage({ onNavigateLogin }) {
         padding: '0 2rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img 
-            src="/Logo Desa Abuan 2.svg" 
-            alt="Logo Desa Abuan" 
-            style={{ height: '46px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))' }} 
+          <img
+            src="/Logo Desa Abuan 2.svg"
+            alt="Logo Desa Abuan"
+            style={{ height: '46px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))' }}
           />
           <div>
             <h1 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.02em', margin: 0 }}>
@@ -50,7 +51,7 @@ export default function LandingPage({ onNavigateLogin }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button 
+          <button
             className="btn btn-primary"
             onClick={onNavigateLogin}
             style={{ padding: '0.55rem 1.4rem' }}
@@ -62,14 +63,23 @@ export default function LandingPage({ onNavigateLogin }) {
 
       {/* Hero Section */}
       <section style={{
-        padding: '4.5rem 2rem 3rem 2rem',
+        padding: '4rem 2rem 3rem 2rem',
         maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',
         textAlign: 'center'
       }}>
-        <div className="badge badge-blue" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-          ✨ Platform Administrasi Kependudukan Terpadu Desa Abuan
+        {/* KKN PPM Banner */}
+        <div className="badge badge-blue" style={{
+          padding: '0.5rem 1.25rem',
+          fontSize: '0.875rem',
+          marginBottom: '1.5rem',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <GraduationCap size={18} color="#60a5fa" />
+          Persembahan Mahasiswa KKN PPM Desa Abuan, Susut, Bangli Periode XXXIII
         </div>
 
         <h1 style={{
@@ -81,27 +91,27 @@ export default function LandingPage({ onNavigateLogin }) {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
-          Sistem Pengelolaan Data Penduduk <br />
+          Sistem Pengelolaan Data Kependudukan <br />
           <span style={{
             background: 'linear-gradient(135deg, #3b82f6 0%, #10b981 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
-          }}>5 Buku Induk Penduduk (BIP)</span>
+          }}>Untuk Memudahkan Kinerja Pengurus Desa Abuan</span>
         </h1>
 
         <p style={{
           fontSize: '1.1rem',
           color: 'var(--text-secondary)',
-          maxWidth: '780px',
+          maxWidth: '820px',
           margin: '0 auto 2.5rem auto',
           lineHeight: 1.6
         }}>
-          Aplikasi terintegrasi untuk pencatatan 5 jenis transaksi kependudukan (Pindah Datang, Pindah Masuk, Lahir, Meninggal, Disabilitas) dengan pembaruan data otomatis ke database BIP masing-masing banjar.
+          Aplikasi terintegrasi yang dirancang secara modern untuk mempermudah perangkat desa dan pengurus banjar dalam mengelola data Buku Induk Penduduk (BIP), memproses mutasi kependudukan (Pindah Datang, Pindah Masuk, Lahir, Meninggal, Disabilitas), serta menyajikan rekapitulasi data yang akurat dan real-time.
         </p>
 
         {/* Action Button Hero */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
-          <button 
+          <button
             className="btn btn-primary"
             onClick={onNavigateLogin}
             style={{ padding: '0.875rem 2.5rem', fontSize: '1rem', borderRadius: '12px' }}
@@ -115,7 +125,7 @@ export default function LandingPage({ onNavigateLogin }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '1rem',
-          marginBottom: '4rem'
+          marginBottom: '3rem'
         }}>
           {BIP_LOCATIONS.map(bip => (
             <div key={bip.id} className="glass-card" style={{ padding: '1.25rem', textAlign: 'left' }}>
@@ -134,6 +144,62 @@ export default function LandingPage({ onNavigateLogin }) {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Modern Section: Memudahkan Kinerja Pengurus Desa */}
+      <section style={{
+        padding: '3.5rem 2rem',
+        maxWidth: '1100px',
+        margin: '0 auto',
+        width: '100%'
+      }}>
+        <div className="glass-panel" style={{
+          padding: '2.5rem 2rem',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <Sparkles size={24} color="#3b82f6" />
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+              Dirancang Khusus Untuk Pengurus Desa Abuan
+            </h2>
+          </div>
+          <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            Web Apps kependudukan ini hadir sebagai bentuk kontribusi nyata Mahasiswa KKN PPM Desa Abuan Periode XXXIII dalam mendukung digitalisasi pelayanan publik. Sistem ini membantu perangkat desa dalam:
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+              <div>
+                <strong style={{ color: '#f8fafc', fontSize: '0.9375rem' }}>Pencatatan Cepat & Terstruktur</strong>
+                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
+                  Mempercepat proses penginputan dan pembaruan data warga di 5 Buku Induk Penduduk (BIP).
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+              <div>
+                <strong style={{ color: '#f8fafc', fontSize: '0.9375rem' }}>Pembaruan Data Otomatis (Overwrite)</strong>
+                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
+                  Sistem otomatis menimpa data lama sehingga informasi kependudukan selalu terbaru dan valid.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+              <div>
+                <strong style={{ color: '#f8fafc', fontSize: '0.9375rem' }}>Rekapitulasi 5 Kategori Lengkap</strong>
+                <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0 0' }}>
+                  Otomatis mengelompokkan laporan Pindah Datang, Pindah Masuk, Lahir, Meninggal, dan Disabilitas.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -288,73 +354,22 @@ export default function LandingPage({ onNavigateLogin }) {
         </div>
       </section>
 
-      {/* Access Roles Summary */}
-      <section style={{ padding: '4rem 2rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-        <h2 style={{ textAlign: 'center', fontSize: '1.6rem', fontWeight: 800, marginBottom: '2rem' }}>
-          Hak Akses Sistem Dual Account
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          <div className="glass-panel" style={{ padding: '2rem', borderTop: '4px solid #ef4444' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <ShieldCheck size={28} color="#ef4444" />
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Akun Admin</h3>
-                <span className="badge badge-red" style={{ fontSize: '0.7rem' }}>Full Control & Management</span>
-              </div>
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.625rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> Mengelola seluruh data di 5 Database BIP
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> <strong>Manajemen Akun User (Tambah, Edit, Hapus User)</strong>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> Hapus permanen & Reset database ke data awal
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> Pengaturan Sinkronisasi Google Sheets
-              </li>
-            </ul>
-          </div>
-
-          <div className="glass-panel" style={{ padding: '2rem', borderTop: '4px solid #3b82f6' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <UserCheck size={28} color="#3b82f6" />
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Akun User / Petugas</h3>
-                <span className="badge badge-blue" style={{ fontSize: '0.7rem' }}>Operational & Input Only</span>
-              </div>
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.625rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> <strong>Menginput Data Kependudukan Baru (5 Kategori)</strong>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> <strong>Meng-update data penduduk (Menimpa data lama di BIP)</strong>
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#10b981" /> Melihat rekapitulasi data & daftar penduduk
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} color="#64748b" /> <em>(Tidak dapat mengelola akun user / reset system)</em>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer style={{
         marginTop: 'auto',
-        padding: '1.5rem',
+        padding: '2rem 1.5rem',
         textAlign: 'center',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        fontSize: '0.8125rem',
-        color: 'var(--text-muted)'
+        fontSize: '0.85rem',
+        color: 'var(--text-secondary)'
       }}>
-        © 2026 Pemerintah Desa Abuan, Kecamatan Susut, Kabupaten Bangli, Bali. All rights reserved.
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: '#f8fafc' }}>
+          <GraduationCap size={18} color="#60a5fa" />
+          Dibuat Oleh Mahasiswa KKN PPM Desa Abuan, Susut, Bangli Periode XXXIII
+        </div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+          © 2026 Pemerintah Desa Abuan, Kecamatan Susut, Kabupaten Bangli, Bali. All rights reserved.
+        </p>
       </footer>
     </div>
   );
