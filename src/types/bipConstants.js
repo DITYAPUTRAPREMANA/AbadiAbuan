@@ -8,71 +8,110 @@ export const BIP_LOCATIONS = [
 
 export const INPUT_CATEGORIES = [
   {
-    id: 'anak_lahir',
-    name: 'Anak Lahir',
-    type: 'ADD',
-    description: 'Pencatatan kelahiran anak baru. Menambah data ke BIP domisili & Rekap Anak Lahir.',
-    recapKey: 'recap_anak_lahir',
-    badgeColor: 'badge-blue'
-  },
-  {
     id: 'pindah_datang',
     name: 'Pindah Datang',
     type: 'ADD',
-    description: 'Penduduk baru yang pindah masuk ke wilayah. Menambah data ke BIP domisili & Rekap Pindah Datang.',
+    description: 'Penduduk baru yang pindah datang dari luar wilayah ke desa/BIP.',
     recapKey: 'recap_pindah_datang',
     badgeColor: 'badge-green'
   },
   {
-    id: 'kelompok_umur',
-    name: 'Kelompok Umur',
+    id: 'pindah_masuk',
+    name: 'Pindah Masuk',
     type: 'ADD',
-    description: 'Pencatatan perubahan/kategori kelompok umur penduduk. Menambah data ke BIP & Rekap Umur.',
-    recapKey: 'recap_kelompok_umur',
+    description: 'Penduduk yang pindah masuk antar dusun/BIP atau masuk ke registrasi lokal.',
+    recapKey: 'recap_pindah_masuk',
+    badgeColor: 'badge-blue'
+  },
+  {
+    id: 'lahir',
+    name: 'Lahir',
+    type: 'ADD',
+    description: 'Pencatatan bayi/anak baru lahir di wilayah BIP.',
+    recapKey: 'recap_lahir',
     badgeColor: 'badge-purple'
-  },
-  {
-    id: 'kelompok_pekerjaan',
-    name: 'Kelompok Pekerjaan',
-    type: 'ADD',
-    description: 'Pencatatan status/kategori pekerjaan penduduk. Menambah data ke BIP & Rekap Pekerjaan.',
-    recapKey: 'recap_kelompok_pekerjaan',
-    badgeColor: 'badge-amber'
-  },
-  {
-    id: 'kelompok_pendidikan',
-    name: 'Kelompok Pendidikan',
-    type: 'ADD',
-    description: 'Pencatatan tingkat pendidikan penduduk. Menambah data ke BIP & Rekap Pendidikan.',
-    recapKey: 'recap_kelompok_pendidikan',
-    badgeColor: 'badge-cyan'
-  },
-  {
-    id: 'pindah_keluar',
-    name: 'Pindah Keluar',
-    type: 'REMOVE',
-    description: 'Penduduk yang pindah keluar wilayah. Menghapus data dari BIP domisili (non-permanen) & memindahkan ke Rekap Pindah Keluar.',
-    recapKey: 'recap_pindah_keluar',
-    badgeColor: 'badge-red'
   },
   {
     id: 'meninggal',
     name: 'Meninggal',
     type: 'REMOVE',
-    description: 'Penduduk yang telah meninggal dunia. Menghapus data dari BIP domisili (non-permanen) & memindahkan ke Rekap Meninggal.',
+    description: 'Pencatatan penduduk yang telah meninggal dunia.',
     recapKey: 'recap_meninggal',
-    badgeColor: 'badge-gray'
+    badgeColor: 'badge-red'
+  },
+  {
+    id: 'disabilitas',
+    name: 'Disabilitas',
+    type: 'UPDATE',
+    description: 'Pencatatan data kependudukan khusus warga penyandang disabilitas.',
+    recapKey: 'recap_disabilitas',
+    badgeColor: 'badge-amber'
   }
 ];
 
 export const RECAP_DATABASES = [
-  { id: 'recap_anak_lahir', name: 'Recap Anak Lahir', category: 'Anak Lahir' },
-  { id: 'recap_pindah_keluar', name: 'Recap Pindah Keluar', category: 'Pindah Keluar' },
   { id: 'recap_pindah_datang', name: 'Recap Pindah Datang', category: 'Pindah Datang' },
+  { id: 'recap_pindah_masuk', name: 'Recap Pindah Masuk', category: 'Pindah Masuk' },
+  { id: 'recap_lahir', name: 'Recap Lahir', category: 'Lahir' },
   { id: 'recap_meninggal', name: 'Recap Meninggal', category: 'Meninggal' },
-  { id: 'recap_kelompok_umur', name: 'Recap Kelompok Umur', category: 'Kelompok Umur' },
-  { id: 'recap_kelompok_pekerjaan', name: 'Recap Kelompok Pekerjaan', category: 'Kelompok Pekerjaan' },
-  { id: 'recap_kelompok_pendidikan', name: 'Recap Kelompok Pendidikan', category: 'Kelompok Pendidikan' }
+  { id: 'recap_disabilitas', name: 'Recap Disabilitas', category: 'Disabilitas' }
+];
+
+export const DISABILITY_TYPES = [
+  'Disabilitas Fisik',
+  'Disabilitas Netra / Penglihatan',
+  'Disabilitas Rungu / Wicara',
+  'Disabilitas Intelektual',
+  'Disabilitas Mental / Gangguaan Jiwa',
+  'Disabilitas Ganda / Multi',
+  'Lainnya'
+];
+
+export const RELIGIONS = [
+  'Hindu',
+  'Islam',
+  'Kristen Protestan',
+  'Katolik',
+  'Buddha',
+  'Khonghucu',
+  'Kepercayaan Terhadap Tuhan YME'
+];
+
+export const MARITAL_STATUSES = [
+  'Belum Kawin',
+  'Kawin',
+  'Cerai Hidup',
+  'Cerai Mati'
+];
+
+export const FAMILY_RELATIONSHIPS = [
+  'Kepala Keluarga',
+  'Suami',
+  'Istri',
+  'Anak',
+  'Menantu',
+  'Cucu',
+  'Orangtua',
+  'Mertua',
+  'Famili Lain',
+  'Pembantu',
+  'Lainnya'
+];
+
+export const BLOOD_TYPES = [
+  'A',
+  'B',
+  'AB',
+  'O',
+  'A+',
+  'A-',
+  'B+',
+  'B-',
+  'AB+',
+  'AB-',
+  'O+',
+  'O-',
+  'Tidak Tahu'
 ];
 
 export const AGE_GROUPS = [

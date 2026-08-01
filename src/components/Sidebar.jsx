@@ -1,7 +1,16 @@
 import React from 'react';
-import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, GitMerge } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, Users, Shield } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, setIsMobileMenuOpen }) {
+export default function Sidebar({ 
+  activeTab, 
+  setActiveTab, 
+  isMobileMenuOpen, 
+  setIsMobileMenuOpen,
+  currentUserRole = 'user',
+  onOpenUserManagement
+}) {
+  const isAdmin = currentUserRole === 'admin';
+
   const menuItems = [
     {
       id: 'dashboard',
@@ -11,38 +20,46 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
     },
     {
       id: 'input_data',
-      label: 'Input Data Penduduk',
+      label: 'Input / Update Data',
       icon: UserPlus,
-      badge: '7 Kategori',
+      badge: '5 Kategori',
       highlight: true
     },
     {
       id: 'bip_databases',
-      label: '5 Database Utama (BIP)',
+      label: '5 Master Database BIP',
       icon: Database,
-      badge: 'Domisili'
+      badge: 'Banjar'
     },
     {
       id: 'recap_databases',
-      label: '7 Database Recap',
+      label: '5 Database Recap',
       icon: FileText,
       badge: 'Rekapitulasi'
     },
-    {
-      id: 'spreadsheet_sync',
-      label: 'Google Spreadsheet Sync',
-      icon: FileSpreadsheet,
-      badge: 'Realtime'
-    },
-    {
-      id: 'flowchart_view',
-      label: 'Penjelasan Alur (PDF)',
-      icon: GitMerge
-    }
+    ...(isAdmin ? [
+      {
+        id: 'user_management_action',
+        label: 'Manajemen Akun User',
+        icon: Users,
+        badge: 'Admin Only',
+        action: onOpenUserManagement
+      },
+      {
+        id: 'spreadsheet_sync',
+        label: 'Google Spreadsheet Sync',
+        icon: FileSpreadsheet,
+        badge: 'Admin'
+      }
+    ] : [])
   ];
 
-  const handleSelectTab = (tabId) => {
-    setActiveTab(tabId);
+  const handleSelectTab = (item) => {
+    if (item.action) {
+      item.action();
+    } else {
+      setActiveTab(item.id);
+    }
     if (setIsMobileMenuOpen) {
       setIsMobileMenuOpen(false);
     }
@@ -74,17 +91,20 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
           flexDirection: 'column',
           padding: '1.25rem 0.875rem',
           gap: '0.5rem',
-          overflow: 'hidden', // Non-scrollable sidebar
+          overflow: 'hidden',
           zIndex: 30
         }}
       >
-        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0 }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Navigasi Sistem
+        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            Navigasi {isAdmin ? 'Admin' : 'Petugas Data'}
           </p>
+          <span className={isAdmin ? 'badge badge-red' : 'badge badge-blue'} style={{ fontSize: '0.65rem' }}>
+            {isAdmin ? 'ADMIN' : 'USER'}
+          </span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1, overflowY: 'auto' }}>
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -92,7 +112,7 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
             return (
               <button
                 key={item.id}
-                onClick={() => handleSelectTab(item.id)}
+                onClick={() => handleSelectTab(item)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -110,7 +130,7 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
                     : 'transparent',
                   color: isActive ? '#ffffff' : '#94a3b8',
                   fontWeight: isActive ? '700' : '500',
-                  fontSize: '0.875rem',
+                  fontSize: '0.85rem',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   textAlign: 'left'
@@ -124,7 +144,7 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
 
                 {item.badge && (
                   <span style={{
-                    fontSize: '0.6875rem',
+                    fontSize: '0.65rem',
                     padding: '0.15rem 0.45rem',
                     borderRadius: '6px',
                     background: isActive ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255, 255, 255, 0.06)',
@@ -150,10 +170,10 @@ export default function Sidebar({ activeTab, setActiveTab, isMobileMenuOpen, set
           flexShrink: 0
         }}>
           <div style={{ fontWeight: '700', color: '#f8fafc', marginBottom: '0.25rem' }}>
-            Struktur Dual Database
+            Akses: {isAdmin ? 'Full Management (Admin)' : 'Input & Update Data (User)'}
           </div>
-          <p style={{ color: '#94a3b8', lineHeight: '1.4' }}>
-            5 BIP (Buku Induk Penduduk) + 7 Recap Log Transaksi terintegrasi otomatis.
+          <p style={{ color: '#94a3b8', lineHeight: '1.4', margin: 0 }}>
+            5 BIP & 5 Recap Kependudukan Terintegrasi Desa Abuan.
           </p>
         </div>
       </aside>

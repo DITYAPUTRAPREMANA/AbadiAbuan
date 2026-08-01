@@ -1,398 +1,760 @@
-import React, { useState } from 'react';
-import { UserPlus, Database, FileText, CheckCircle, AlertTriangle, ArrowRight, Info, RefreshCw } from 'lucide-react';
-import { BIP_LOCATIONS, INPUT_CATEGORIES, JOB_CATEGORIES, EDUCATION_LEVELS } from '../types/bipConstants';
-import { processPopulationTransaction, calculateAgeGroup } from '../services/storageService';
-import { syncTransactionToGoogleSheet } from '../services/sheetsService';
+import React, { useState, useEffect } from 'react';
+import { 
+  Save, 
+  RefreshCw, 
+  CheckCircle, 
+  AlertCircle, 
+  UserPlus, 
+  Edit3, 
+  Search, 
+  Building2, 
+  Baby, 
+  UserMinus, 
+  Accessibility,
+  FileSpreadsheet
+} from 'lucide-react';
+import { 
+  BIP_LOCATIONS, 
+  INPUT_CATEGORIES, 
+  DISABILITY_TYPES, 
+  RELIGIONS, 
+  MARITAL_STATUSES, 
+  FAMILY_RELATIONSHIPS, 
+  BLOOD_TYPES, 
+  EDUCATION_LEVELS, 
+  JOB_CATEGORIES 
+} from '../types/bipConstants';
+import { 
+  processPopulationTransaction, 
+  updateResidentRecord, 
+  calculateAgeFromBirthdate,
+  searchResidentGlobal 
+} from '../services/storageService';
 
-export default function InputDataForm({ onTransactionSuccess }) {
-  const [selectedCategory, setSelectedCategory] = useState(INPUT_CATEGORIES[0].name);
-  const [domisili, setDomisili] = useState(BIP_LOCATIONS[0].name);
+export default function InputDataForm({ onTransactionSuccess, initialUpdateData = null }) {
+  const [formMode, setFormMode] = useState('INSERT'); // 'INSERT' | 'UPDATE'
+  const [editingRecordId, setEditingRecordId] = useState(null);
 
-  // Form Fields
-  const [nik, setNik] = useState('');
-  const [nama, setNama] = useState('');
-  const [jenisKelamin, setJenisKelamin] = useState('Laki-laki');
-  const [tempatLahir, setTempatLahir] = useState('Bangli');
-  const [tanggalLahir, setTanggalLahir] = useState('2000-01-01');
-  const [pekerjaan, setPekerjaan] = useState(JOB_CATEGORIES[0]);
-  const [pendidikan, setPendidikan] = useState(EDUCATION_LEVELS[3]);
-  const [alamat, setAlamat] = useState('');
-  const [keterangan, setKeterangan] = useState('');
-  const [tanggalTransaksi, setTanggalTransaksi] = useState(new Date().toISOString().split('T')[0]);
+  // Search state for update mode
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
-  // UI state
-  const [loading, setLoading] = useState(false);
+  // Form Fields matching all columns in the Excel screenshot
+  const [formData, setFormData] = useState({
+    kategori: 'Pindah Datang',
+    domisili: 'BIP Sala',
+    no: 1,
+    nr: '',
+    n_kk: '',
+    n_ak: '',
+    no_kk: '',
+    nik: '',
+    nama: '',
+    jenisKelamin: 'Laki-laki',
+    tempatLahir: 'Bangli',
+    tanggalLahir: '1995-01-01',
+    noAktaLahir: '',
+    agama: 'Hindu',
+    pendidikan: 'SMA / SMK / Sederajat',
+    pekerjaan: 'Petani / Pekebun',
+    statusKawin: 'Belum Kawin',
+    noAktaKawin: '',
+    statusHbkel: 'Kepala Keluarga',
+    golDarah: 'O',
+    namaAyah: '',
+    namaIbu: '',
+    namaKepalaKeluarga: '',
+    alamat: '',
+    dusun: 'Sala',
+    desaKel: 'Abuan',
+    kecamatan: 'Susut',
+    disabilitas: 'Disabilitas Fisik',
+    keterangan: ''
+  });
+
   const [notification, setNotification] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categoryMeta = INPUT_CATEGORIES.find(c => c.name === selectedCategory) || INPUT_CATEGORIES[0];
-  const isAddCategory = categoryMeta.type === 'ADD';
+  // Pre-fill form if initialUpdateData is passed
+  useEffect(() => {
+    if (initialUpdateData) {
+      handleSelectResidentToEdit(initialUpdateData);
+    }
+  }, [initialUpdateData]);
 
-  // Live Auto Computed Age
-  const { age, group } = calculateAgeGroup(tanggalLahir);
+  const calculatedAge = calculateAgeFromBirthdate(formData.tanggalLahir);
 
-  const handleSubmit = async (e) => {
+  const handleInputChange = (field, value) => {
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      if (field === 'domisili') {
+        next.dusun = value.replace('BIP ', '');
+      }
+      return next;
+    });
+  };
+
+  const handleSearchResident = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const results = searchResidentGlobal(searchQuery);
+    setSearchResults(results);
+  };
+
+  const handleSelectResidentToEdit = (resident) => {
+    setFormMode('UPDATE');
+    setEditingRecordId(resident.id);
+    setFormData({
+      kategori: 'Pindah Datang',
+      domisili: resident.domisili || 'BIP Sala',
+      no: resident.no || 1,
+      nr: resident.nr || '',
+      n_kk: resident.n_kk || '',
+      n_ak: resident.n_ak || '',
+      no_kk: resident.no_kk || '',
+      nik: resident.nik || '',
+      nama: resident.nama || '',
+      jenisKelamin: resident.jenisKelamin || 'Laki-laki',
+      tempatLahir: resident.tempatLahir || 'Bangli',
+      tanggalLahir: resident.tanggalLahir || '1995-01-01',
+      noAktaLahir: resident.noAktaLahir || '',
+      agama: resident.agama || 'Hindu',
+      pendidikan: resident.pendidikan || 'SMA / SMK / Sederajat',
+      pekerjaan: resident.pekerjaan || 'Petani / Pekebun',
+      statusKawin: resident.statusKawin || 'Belum Kawin',
+      noAktaKawin: resident.noAktaKawin || '',
+      statusHbkel: resident.statusHbkel || 'Kepala Keluarga',
+      golDarah: resident.golDarah || 'O',
+      namaAyah: resident.namaAyah || '',
+      namaIbu: resident.namaIbu || '',
+      namaKepalaKeluarga: resident.namaKepalaKeluarga || '',
+      alamat: resident.alamat || '',
+      dusun: resident.dusun || (resident.domisili ? resident.domisili.replace('BIP ', '') : 'Sala'),
+      desaKel: resident.desaKel || 'Abuan',
+      kecamatan: resident.kecamatan || 'Susut',
+      disabilitas: resident.disabilitas || 'Disabilitas Fisik',
+      keterangan: resident.keterangan || ''
+    });
+    setSearchResults([]);
+    setNotification({
+      type: 'info',
+      message: `Data "${resident.nama}" siap diperbarui. Silakan ubah isian form lalu klik "Simpan Perubahan (Timpa Data)"`
+    });
+  };
+
+  const resetForm = () => {
+    setFormMode('INSERT');
+    setEditingRecordId(null);
+    setFormData({
+      kategori: 'Pindah Datang',
+      domisili: 'BIP Sala',
+      no: 1,
+      nr: '',
+      n_kk: '',
+      n_ak: '',
+      no_kk: '',
+      nik: '',
+      nama: '',
+      jenisKelamin: 'Laki-laki',
+      tempatLahir: 'Bangli',
+      tanggalLahir: '1995-01-01',
+      noAktaLahir: '',
+      agama: 'Hindu',
+      pendidikan: 'SMA / SMK / Sederajat',
+      pekerjaan: 'Petani / Pekebun',
+      statusKawin: 'Belum Kawin',
+      noAktaKawin: '',
+      statusHbkel: 'Kepala Keluarga',
+      golDarah: 'O',
+      namaAyah: '',
+      namaIbu: '',
+      namaKepalaKeluarga: '',
+      alamat: '',
+      dusun: 'Sala',
+      desaKel: 'Abuan',
+      kecamatan: 'Susut',
+      disabilitas: 'Disabilitas Fisik',
+      keterangan: ''
+    });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     setNotification(null);
 
-    // Basic Validation
-    if (!nik || nik.length < 16) {
-      setNotification({ type: 'error', message: 'NIK wajib diisi minimal 16 digit angka!' });
-      return;
-    }
-    if (!nama.trim()) {
-      setNotification({ type: 'error', message: 'Nama lengkap wajib diisi!' });
+    if (!formData.nik || formData.nik.trim().length !== 16) {
+      setNotification({
+        type: 'error',
+        message: 'NIK Wajib diisi tepat 16 Digit angka!'
+      });
       return;
     }
 
-    setLoading(true);
+    if (!formData.nama || !formData.nama.trim()) {
+      setNotification({
+        type: 'error',
+        message: 'Nama Lengkap Penduduk wajib diisi!'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      const formDataPayload = {
-        kategori: selectedCategory,
-        domisili,
-        nik,
-        nama,
-        jenisKelamin,
-        tempatLahir,
-        tanggalLahir,
-        pekerjaan,
-        pendidikan,
-        alamat,
-        keterangan,
-        tanggalTransaksi
-      };
+      if (formMode === 'UPDATE') {
+        // Overwrite / Update existing resident record
+        const result = updateResidentRecord(editingRecordId, {
+          ...formData,
+          umur: calculatedAge
+        });
 
-      // 1. Process in Local Storage Engine
-      const result = processPopulationTransaction(formDataPayload);
+        setNotification({
+          type: 'success',
+          message: result.message
+        });
+      } else {
+        // Insert new category transaction
+        const result = processPopulationTransaction(formData);
+        setNotification({
+          type: 'success',
+          message: result.message
+        });
+      }
 
-      // 2. Try Google Sheets Sync in Background
-      const sheetResult = await syncTransactionToGoogleSheet(formDataPayload);
-
-      setLoading(false);
-      setNotification({
-        type: 'success',
-        message: result.message + (sheetResult.synced ? ' (Tersinkron ke Google Sheets)' : '')
-      });
-
-      // Clear Form or notify parent
       if (onTransactionSuccess) {
         onTransactionSuccess();
       }
 
-      // Reset form conditionally
-      setNik('');
-      setNama('');
-      setKeterangan('');
+      resetForm();
     } catch (err) {
-      setLoading(false);
-      setNotification({ type: 'error', message: err.message || 'Gagal memproses transaksi data!' });
+      setNotification({
+        type: 'error',
+        message: err.message || 'Gagal memproses data.'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
-      {/* Title */}
-      <div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#ffffff', letterSpacing: '-0.02em' }}>
-          Form Input Pencatatan Penduduk
-        </h2>
-        <p style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
-          Pilih salah satu dari 7 kategori pencatatan. Sistem akan menentukan aksi ke Database Utama & Database Recap secara otomatis.
-        </p>
+    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      {/* Form Mode Selector & Header */}
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {formMode === 'INSERT' ? <UserPlus color="#10b981" /> : <Edit3 color="#3b82f6" />}
+              {formMode === 'INSERT' ? 'Form Input Data Kependudukan (5 Kategori)' : 'Form Update Data Penduduk (Timpa Data Lama)'}
+            </h2>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
+              {formMode === 'INSERT' 
+                ? 'Lengkapi semua field standar kependudukan (26+ Kolom Excel BIP).' 
+                : `Memperbarui data penduduk ID: ${editingRecordId}. Data lama di BIP akan digantikan.`}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button 
+              className={`btn ${formMode === 'INSERT' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setFormMode('INSERT')}
+            >
+              Input Baru
+            </button>
+            <button 
+              className={`btn ${formMode === 'UPDATE' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setFormMode('UPDATE')}
+            >
+              Update Data Lama
+            </button>
+          </div>
+        </div>
+
+        {/* Search tool when in UPDATE mode */}
+        {formMode === 'UPDATE' && (
+          <div className="glass-card" style={{ padding: '1rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Search size={16} /> Cari Penduduk Yang Akan Di-update:
+            </h3>
+            <form onSubmit={handleSearchResident} style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Ketik NIK atau Nama penduduk..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="btn btn-secondary">Cari</button>
+            </form>
+
+            {searchResults.length > 0 && (
+              <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto' }}>
+                {searchResults.map(r => (
+                  <div 
+                    key={r.id} 
+                    style={{
+                      padding: '0.5rem 0.75rem',
+                      background: 'rgba(15, 23, 42, 0.6)',
+                      borderRadius: '8px',
+                      marginBottom: '0.35rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.8125rem'
+                    }}
+                  >
+                    <div>
+                      <strong>{r.nama}</strong> (NIK: {r.nik}) - <span style={{ color: '#60a5fa' }}>{r.domisili}</span>
+                    </div>
+                    <button 
+                      className="btn btn-success"
+                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                      onClick={() => handleSelectResidentToEdit(r)}
+                    >
+                      Pilih & Load Form
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Notification Toast */}
+      {/* Alert Notification */}
       {notification && (
         <div style={{
           padding: '1rem 1.25rem',
           borderRadius: '12px',
+          marginBottom: '1.5rem',
+          background: notification.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : notification.type === 'info' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+          border: `1px solid ${notification.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : notification.type === 'info' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+          color: notification.type === 'error' ? '#f87171' : notification.type === 'info' ? '#93c5fd' : '#34d399',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          background: notification.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-          border: notification.type === 'success' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)',
-          color: notification.type === 'success' ? '#34d399' : '#f87171'
+          fontSize: '0.9rem'
         }}>
-          {notification.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
-          <div style={{ fontSize: '0.875rem', fontWeight: '600' }}>{notification.message}</div>
+          {notification.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+          <div style={{ flex: 1 }}>{notification.message}</div>
         </div>
       )}
 
-      {/* STEP 1: Select Category */}
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
-        <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>
-          Langkah 1: Pilih Kategori Pencatatan (7 Opsi Kategori)
-        </label>
+      {/* Main Form */}
+      <form onSubmit={handleSubmit}>
+        {/* Category & Location Selectors */}
+        <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#60a5fa' }}>
+            1. Kategori Pencatatan & Target BIP
+          </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-          {INPUT_CATEGORIES.map(cat => {
-            const isSelected = selectedCategory === cat.name;
-            const isAdd = cat.type === 'ADD';
-
-            return (
-              <button
-                type="button"
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.name)}
-                style={{
-                  padding: '0.875rem 1rem',
-                  borderRadius: '12px',
-                  border: isSelected 
-                    ? `2px solid ${isAdd ? '#10b981' : '#ef4444'}` 
-                    : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: isSelected 
-                    ? isAdd ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' 
-                    : 'rgba(30, 41, 59, 0.4)',
-                  color: isSelected ? '#ffffff' : '#94a3b8',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  position: 'relative'
-                }}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+            {/* Kategori Input */}
+            <div className="form-group">
+              <label className="form-label">KATEGORI INPUT DATA (5 Kategori)</label>
+              <select 
+                className="form-select"
+                value={formData.kategori}
+                onChange={(e) => handleInputChange('kategori', e.target.value)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span style={{ fontSize: '0.875rem', fontWeight: '700' }}>{cat.name}</span>
-                  <span style={{
-                    fontSize: '0.6875rem',
-                    fontWeight: '700',
-                    color: isAdd ? '#34d399' : '#f87171'
-                  }}>
-                    {isAdd ? '+ Tambah' : '- Hapus'}
-                  </span>
-                </div>
-                <p style={{ fontSize: '0.75rem', color: isSelected ? '#cbd5e1' : '#64748b', lineHeight: '1.3' }}>
-                  {isAdd ? 'Menambah ke BIP & Recap' : 'Menghapus dari BIP & Pindah ke Recap'}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Logic Explanation Card */}
-        <div style={{
-          marginTop: '1.25rem',
-          padding: '1rem 1.25rem',
-          borderRadius: '12px',
-          background: isAddCategory ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-          border: isAddCategory ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(239, 68, 68, 0.25)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          fontSize: '0.875rem'
-        }}>
-          <Info size={24} color={isAddCategory ? '#34d399' : '#f87171'} style={{ flexShrink: 0 }} />
-          <div>
-            <div style={{ fontWeight: '700', color: isAddCategory ? '#34d399' : '#f87171' }}>
-              Logika Jalur System: {isAddCategory ? 'JALUR PENAMBAHAN DATA' : 'JALUR PENGURANGAN DATA'}
+                {INPUT_CATEGORIES.map(cat => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name} ({cat.description})
+                  </option>
+                ))}
+              </select>
             </div>
-            <div style={{ color: '#cbd5e1', fontSize: '0.8125rem', marginTop: '0.15rem' }}>
-              {isAddCategory ? (
-                <>Data baru akan <b>DITAMBAHKAN</b> ke Database Utama (<strong>{domisili}</strong>) dan dicatat ke <strong>Recap {selectedCategory}</strong>.</>
-              ) : (
-                <>Data akan <b>DIHAPUS ADMINISTRATIVE</b> (non-permanen) dari Database Utama (<strong>{domisili}</strong>) dan dipindahkan ke <strong>Recap {selectedCategory}</strong>.</>
-              )}
+
+            {/* Target BIP */}
+            <div className="form-group">
+              <label className="form-label">DOMISILI TARGET BUKU INDUK PENDUDUK (BIP)</label>
+              <select 
+                className="form-select"
+                value={formData.domisili}
+                onChange={(e) => handleInputChange('domisili', e.target.value)}
+              >
+                {BIP_LOCATIONS.map(bip => (
+                  <option key={bip.id} value={bip.name}>
+                    {bip.name} (Kode: {bip.code})
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* STEP 2: Fill Form Fields */}
-      <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '1.75rem' }}>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: '700', color: '#ffffff', marginBottom: '1.25rem' }}>
-          Langkah 2: Lengkapi Rincian Data Penduduk
-        </h3>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-          {/* Domisili / Wilayah Tempat Tinggal */}
-          <div className="form-group">
-            <label className="form-label">
-              Database Utama Domisili (5 BIP) <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <select
-              value={domisili}
-              onChange={(e) => setDomisili(e.target.value)}
-              className="form-select"
-            >
-              {BIP_LOCATIONS.map(bip => (
-                <option key={bip.id} value={bip.name}>{bip.name}</option>
-              ))}
-            </select>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              Menentukan spreadsheet BIP mana yang akan diupdate.
-            </span>
-          </div>
-
-          {/* NIK */}
-          <div className="form-group">
-            <label className="form-label">
-              NIK (Nomor Induk Kependudukan) <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              type="text"
-              maxLength={16}
-              placeholder="Contoh: 510601..."
-              value={nik}
-              onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
-              className="form-input"
-              required
-            />
-          </div>
-
-          {/* Nama Lengkap */}
-          <div className="form-group">
-            <label className="form-label">
-              Nama Lengkap Penduduk <span style={{ color: '#ef4444' }}>*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Contoh: I Wayan Sudiarta"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              className="form-input"
-              required
-            />
-          </div>
-
-          {/* Jenis Kelamin */}
-          <div className="form-group">
-            <label className="form-label">Jenis Kelamin</label>
-            <select
-              value={jenisKelamin}
-              onChange={(e) => setJenisKelamin(e.target.value)}
-              className="form-select"
-            >
-              <option value="Laki-laki">Laki-laki</option>
-              <option value="Perempuan">Perempuan</option>
-            </select>
-          </div>
-
-          {/* Tempat & Tanggal Lahir */}
-          <div className="form-group">
-            <label className="form-label">Tempat Lahir</label>
-            <input
-              type="text"
-              value={tempatLahir}
-              onChange={(e) => setTempatLahir(e.target.value)}
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">
-              Tanggal Lahir (Auto Hitung Umur: {age} Thn)
-            </label>
-            <input
-              type="date"
-              value={tanggalLahir}
-              onChange={(e) => setTanggalLahir(e.target.value)}
-              className="form-input"
-            />
-            <span style={{ fontSize: '0.75rem', color: '#60a5fa' }}>
-              Kategori Kelompok Umur: {group}
-            </span>
-          </div>
-
-          {/* Pekerjaan */}
-          <div className="form-group">
-            <label className="form-label">Kelompok Pekerjaan</label>
-            <select
-              value={pekerjaan}
-              onChange={(e) => setPekerjaan(e.target.value)}
-              className="form-select"
-            >
-              {JOB_CATEGORIES.map((job, idx) => (
-                <option key={idx} value={job}>{job}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Pendidikan */}
-          <div className="form-group">
-            <label className="form-label">Kelompok Pendidikan</label>
-            <select
-              value={pendidikan}
-              onChange={(e) => setPendidikan(e.target.value)}
-              className="form-select"
-            >
-              {EDUCATION_LEVELS.map((edu, idx) => (
-                <option key={idx} value={edu}>{edu}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tanggal Transaksi */}
-          <div className="form-group">
-            <label className="form-label">Tanggal Transaksi / Kejadian</label>
-            <input
-              type="date"
-              value={tanggalTransaksi}
-              onChange={(e) => setTanggalTransaksi(e.target.value)}
-              className="form-input"
-            />
-          </div>
+          {/* Conditional Disabilitas Selection Option */}
+          {formData.kategori === 'Disabilitas' && (
+            <div className="glass-card" style={{ padding: '1rem', marginTop: '1rem', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Accessibility size={16} /> PILIH RAGAM / JENIS DISABILITAS
+                </label>
+                <select 
+                  className="form-select"
+                  value={formData.disabilitas}
+                  onChange={(e) => handleInputChange('disabilitas', e.target.value)}
+                >
+                  {DISABILITY_TYPES.map(dis => (
+                    <option key={dis} value={dis}>{dis}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Alamat & Keterangan */}
-        <div style={{ marginTop: '0.75rem' }}>
-          <div className="form-group">
-            <label className="form-label">Alamat Domisili Lengkap</label>
-            <input
-              type="text"
-              placeholder={`Banjar ${domisili.replace('BIP ', '')}, Desa Abuan`}
-              value={alamat}
-              onChange={(e) => setAlamat(e.target.value)}
-              className="form-input"
-            />
-          </div>
+        {/* Main Fields Grid matching Excel Screenshot */}
+        <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: '#60a5fa' }}>
+            2. Identitas Penduduk & Data Register (Sesuai Kolom Excel BIP)
+          </h3>
 
-          <div className="form-group">
-            <label className="form-label">
-              Keterangan / Catatan Rekap ({selectedCategory})
-            </label>
-            <textarea
-              rows={3}
-              placeholder={isAddCategory 
-                ? 'Contoh: Lahir di RSUD Bangli / Pindah dari Denpasar' 
-                : 'Contoh: Pindah keluar ke Kabupaten Badung / Meninggal karena usia tua'}
-              value={keterangan}
-              onChange={(e) => setKeterangan(e.target.value)}
-              className="form-textarea"
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            {/* NO */}
+            <div className="form-group">
+              <label className="form-label">NO (Nomor Urut)</label>
+              <input 
+                type="number" 
+                className="form-input"
+                value={formData.no}
+                onChange={(e) => handleInputChange('no', e.target.value)}
+              />
+            </div>
+
+            {/* NR */}
+            <div className="form-group">
+              <label className="form-label">N R (No Register)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="cth: REG-001"
+                value={formData.nr}
+                onChange={(e) => handleInputChange('nr', e.target.value)}
+              />
+            </div>
+
+            {/* N KK */}
+            <div className="form-group">
+              <label className="form-label">N KK (No Reg KK)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="cth: REG-KK-01"
+                value={formData.n_kk}
+                onChange={(e) => handleInputChange('n_kk', e.target.value)}
+              />
+            </div>
+
+            {/* N AK */}
+            <div className="form-group">
+              <label className="form-label">N AK (No Reg AK)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="cth: REG-AK-01"
+                value={formData.n_ak}
+                onChange={(e) => handleInputChange('n_ak', e.target.value)}
+              />
+            </div>
+
+            {/* NO_KK */}
+            <div className="form-group">
+              <label className="form-label">NO_KK (16 Digit)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="510601xxxxxxxxxx"
+                maxLength={16}
+                value={formData.no_kk}
+                onChange={(e) => handleInputChange('no_kk', e.target.value)}
+                required
+              />
+            </div>
+
+            {/* NIK */}
+            <div className="form-group">
+              <label className="form-label">NIK (16 Digit Wajib)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="510601xxxxxxxxxx"
+                maxLength={16}
+                value={formData.nik}
+                onChange={(e) => handleInputChange('nik', e.target.value)}
+                required
+              />
+            </div>
+
+            {/* NAMA_LENGKAP */}
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">NAMA_LENGKAP</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nama lengkap sesuai KTP/KK"
+                value={formData.nama}
+                onChange={(e) => handleInputChange('nama', e.target.value)}
+                required
+              />
+            </div>
+
+            {/* JENIS_KELAMIN */}
+            <div className="form-group">
+              <label className="form-label">JENIS_KELAMIN</label>
+              <select 
+                className="form-select"
+                value={formData.jenisKelamin}
+                onChange={(e) => handleInputChange('jenisKelamin', e.target.value)}
+              >
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+
+            {/* TMPT_LHR */}
+            <div className="form-group">
+              <label className="form-label">TMPT_LHR (Tempat Lahir)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="cth: Bangli / Denpasar"
+                value={formData.tempatLahir}
+                onChange={(e) => handleInputChange('tempatLahir', e.target.value)}
+              />
+            </div>
+
+            {/* TGL_LHR */}
+            <div className="form-group">
+              <label className="form-label">TGL_LHR (Tanggal Lahir)</label>
+              <input 
+                type="date" 
+                className="form-input"
+                value={formData.tanggalLahir}
+                onChange={(e) => handleInputChange('tanggalLahir', e.target.value)}
+                required
+              />
+            </div>
+
+            {/* USIA (Calculated) */}
+            <div className="form-group">
+              <label className="form-label">USIA (Hitung Otomatis)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={`${calculatedAge} Tahun`}
+                disabled
+                style={{ opacity: 0.8, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+              />
+            </div>
+
+            {/* NO_AKTA_LHR */}
+            <div className="form-group">
+              <label className="form-label">NO_AKTA_LHR</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nomor Akta Kelahiran"
+                value={formData.noAktaLahir}
+                onChange={(e) => handleInputChange('noAktaLahir', e.target.value)}
+              />
+            </div>
+
+            {/* AGAMA */}
+            <div className="form-group">
+              <label className="form-label">AGAMA</label>
+              <select 
+                className="form-select"
+                value={formData.agama}
+                onChange={(e) => handleInputChange('agama', e.target.value)}
+              >
+                {RELIGIONS.map(ag => (
+                  <option key={ag} value={ag}>{ag}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* PENDIDIKAN */}
+            <div className="form-group">
+              <label className="form-label">PENDIDIKAN</label>
+              <select 
+                className="form-select"
+                value={formData.pendidikan}
+                onChange={(e) => handleInputChange('pendidikan', e.target.value)}
+              >
+                {EDUCATION_LEVELS.map(edu => (
+                  <option key={edu} value={edu}>{edu}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* PEKERJAAN */}
+            <div className="form-group">
+              <label className="form-label">PEKERJAAN</label>
+              <select 
+                className="form-select"
+                value={formData.pekerjaan}
+                onChange={(e) => handleInputChange('pekerjaan', e.target.value)}
+              >
+                {JOB_CATEGORIES.map(job => (
+                  <option key={job} value={job}>{job}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* STATUS_KAWIN */}
+            <div className="form-group">
+              <label className="form-label">STATUS_KAWIN</label>
+              <select 
+                className="form-select"
+                value={formData.statusKawin}
+                onChange={(e) => handleInputChange('statusKawin', e.target.value)}
+              >
+                {MARITAL_STATUSES.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* NO_AKTA_KWN */}
+            <div className="form-group">
+              <label className="form-label">NO_AKTA_KWN (Akta Perkawinan)</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nomor Akta Perkawinan / Perceraian"
+                value={formData.noAktaKawin}
+                onChange={(e) => handleInputChange('noAktaKawin', e.target.value)}
+              />
+            </div>
+
+            {/* STATUS_HBKEL */}
+            <div className="form-group">
+              <label className="form-label">STATUS_HBKEL (Hubungan Keluarga)</label>
+              <select 
+                className="form-select"
+                value={formData.statusHbkel}
+                onChange={(e) => handleInputChange('statusHbkel', e.target.value)}
+              >
+                {FAMILY_RELATIONSHIPS.map(rel => (
+                  <option key={rel} value={rel}>{rel}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* GOL_DARAH */}
+            <div className="form-group">
+              <label className="form-label">GOL_DARAH</label>
+              <select 
+                className="form-select"
+                value={formData.golDarah}
+                onChange={(e) => handleInputChange('golDarah', e.target.value)}
+              >
+                {BLOOD_TYPES.map(gol => (
+                  <option key={gol} value={gol}>{gol}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* NAMA_LGKP_AYAH */}
+            <div className="form-group">
+              <label className="form-label">NAMA_LGKP_AYAH</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nama Ayah Kandung"
+                value={formData.namaAyah}
+                onChange={(e) => handleInputChange('namaAyah', e.target.value)}
+              />
+            </div>
+
+            {/* NAMA_LGKP_IBU */}
+            <div className="form-group">
+              <label className="form-label">NAMA_LGKP_IBU</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nama Ibu Kandung"
+                value={formData.namaIbu}
+                onChange={(e) => handleInputChange('namaIbu', e.target.value)}
+              />
+            </div>
+
+            {/* NAMA_KEPALA_KELUARGA */}
+            <div className="form-group">
+              <label className="form-label">NAMA_KEPALA_KELUARGA</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Nama Kepala Keluarga"
+                value={formData.namaKepalaKeluarga}
+                onChange={(e) => handleInputChange('namaKepalaKeluarga', e.target.value)}
+              />
+            </div>
+
+            {/* ALAMAT */}
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">ALAMAT LENGKAP</label>
+              <input 
+                type="text" 
+                className="form-input"
+                placeholder="Jalan, RT/RW, No. Rumah"
+                value={formData.alamat}
+                onChange={(e) => handleInputChange('alamat', e.target.value)}
+              />
+            </div>
+
+            {/* DUSUN */}
+            <div className="form-group">
+              <label className="form-label">DUSUN</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.dusun}
+                onChange={(e) => handleInputChange('dusun', e.target.value)}
+              />
+            </div>
+
+            {/* DESA_KEL */}
+            <div className="form-group">
+              <label className="form-label">DESA_KEL</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.desaKel}
+                onChange={(e) => handleInputChange('desaKel', e.target.value)}
+              />
+            </div>
+
+            {/* KECAMATAN */}
+            <div className="form-group">
+              <label className="form-label">KECAMATAN</label>
+              <input 
+                type="text" 
+                className="form-input"
+                value={formData.kecamatan}
+                onChange={(e) => handleInputChange('kecamatan', e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              setNik('');
-              setNama('');
-              setKeterangan('');
-              setNotification(null);
-            }}
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '3rem' }}>
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
+            onClick={resetForm}
+            style={{ padding: '0.75rem 1.5rem' }}
           >
-            Reset Form
+            <RefreshCw size={16} /> Reset Form
           </button>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`btn ${isAddCategory ? 'btn-success' : 'btn-danger'}`}
-            style={{ padding: '0.75rem 1.75rem', fontSize: '0.9375rem' }}
+          <button 
+            type="submit" 
+            className="btn btn-primary"
+            disabled={isSubmitting}
+            style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}
           >
-            {loading ? (
-              <>
-                <RefreshCw size={18} className="live-pulse" />
-                <span>Memproses Data...</span>
-              </>
-            ) : (
-              <>
-                <UserPlus size={18} />
-                <span>Proses Transaction ({selectedCategory})</span>
-              </>
-            )}
+            <Save size={18} /> {formMode === 'INSERT' ? 'Simpan Data Baru Ke BIP' : 'Simpan Perubahan (Timpa Data Lama)'}
           </button>
         </div>
       </form>
