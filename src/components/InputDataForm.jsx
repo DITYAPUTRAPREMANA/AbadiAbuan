@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Save, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertCircle, 
-  UserPlus, 
-  Edit3, 
-  Search, 
-  Building2, 
-  Baby, 
-  UserMinus, 
+import {
+  Save,
+  RefreshCw,
+  CheckCircle,
+  AlertCircle,
+  UserPlus,
+  Edit3,
+  Search,
+  Building2,
+  Baby,
+  UserMinus,
   Accessibility,
   FileSpreadsheet
 } from 'lucide-react';
-import { 
-  BIP_LOCATIONS, 
-  INPUT_CATEGORIES, 
-  DISABILITY_TYPES, 
-  RELIGIONS, 
-  MARITAL_STATUSES, 
-  FAMILY_RELATIONSHIPS, 
-  BLOOD_TYPES, 
-  EDUCATION_LEVELS, 
-  JOB_CATEGORIES 
+import {
+  BIP_LOCATIONS,
+  INPUT_CATEGORIES,
+  DISABILITY_TYPES,
+  RELIGIONS,
+  MARITAL_STATUSES,
+  FAMILY_RELATIONSHIPS,
+  BLOOD_TYPES,
+  EDUCATION_LEVELS,
+  JOB_CATEGORIES
 } from '../types/bipConstants';
-import { 
-  processPopulationTransaction, 
-  updateResidentRecord, 
+import {
+  processPopulationTransaction,
+  updateResidentRecord,
   calculateAgeFromBirthdate,
-  searchResidentGlobal 
+  searchResidentGlobal
 } from '../services/storageService';
 
 export default function InputDataForm({ onTransactionSuccess, initialUpdateData = null }) {
@@ -247,20 +247,20 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
               {formMode === 'INSERT' ? 'Form Input Data Kependudukan (5 Kategori)' : 'Form Update Data Penduduk (Timpa Data Lama)'}
             </h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
-              {formMode === 'INSERT' 
-                ? 'Lengkapi semua field standar kependudukan (26+ Kolom Excel BIP).' 
+              {formMode === 'INSERT'
+                ? 'Lengkapi semua field standar kependudukan (26+ Kolom Excel BIP).'
                 : `Memperbarui data penduduk ID: ${editingRecordId}. Data lama di BIP akan digantikan.`}
             </p>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button 
+            <button
               className={`btn ${formMode === 'INSERT' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setFormMode('INSERT')}
             >
               Input Baru
             </button>
-            <button 
+            <button
               className={`btn ${formMode === 'UPDATE' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setFormMode('UPDATE')}
             >
@@ -276,8 +276,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
               <Search size={16} /> Cari Penduduk Yang Akan Di-update:
             </h3>
             <form onSubmit={handleSearchResident} style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Ketik NIK atau Nama penduduk..."
                 value={searchQuery}
@@ -289,8 +289,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {searchResults.length > 0 && (
               <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto' }}>
                 {searchResults.map(r => (
-                  <div 
-                    key={r.id} 
+                  <div
+                    key={r.id}
                     style={{
                       padding: '0.5rem 0.75rem',
                       background: 'rgba(15, 23, 42, 0.6)',
@@ -305,7 +305,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
                     <div>
                       <strong>{r.nama}</strong> (NIK: {r.nik}) - <span style={{ color: '#60a5fa' }}>{r.domisili}</span>
                     </div>
-                    <button 
+                    <button
                       className="btn btn-success"
                       style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
                       onClick={() => handleSelectResidentToEdit(r)}
@@ -351,7 +351,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* Kategori Input */}
             <div className="form-group">
               <label className="form-label">KATEGORI INPUT DATA (5 Kategori)</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.kategori}
                 onChange={(e) => handleInputChange('kategori', e.target.value)}
@@ -367,7 +367,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* Target BIP */}
             <div className="form-group">
               <label className="form-label">DOMISILI TARGET BUKU INDUK PENDUDUK (BIP)</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.domisili}
                 onChange={(e) => handleInputChange('domisili', e.target.value)}
@@ -388,7 +388,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
                 <label className="form-label" style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Accessibility size={16} /> PILIH RAGAM / JENIS DISABILITAS
                 </label>
-                <select 
+                <select
                   className="form-select"
                   value={formData.disabilitas}
                   onChange={(e) => handleInputChange('disabilitas', e.target.value)}
@@ -412,8 +412,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NO */}
             <div className="form-group">
               <label className="form-label">NO (Nomor Urut)</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="form-input"
                 value={formData.no}
                 onChange={(e) => handleInputChange('no', e.target.value)}
@@ -423,8 +423,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NR */}
             <div className="form-group">
               <label className="form-label">N R (No Register)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="cth: REG-001"
                 value={formData.nr}
@@ -435,8 +435,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* N KK */}
             <div className="form-group">
               <label className="form-label">N KK (No Reg KK)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="cth: REG-KK-01"
                 value={formData.n_kk}
@@ -447,8 +447,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* N AK */}
             <div className="form-group">
               <label className="form-label">N AK (No Reg AK)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="cth: REG-AK-01"
                 value={formData.n_ak}
@@ -459,8 +459,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NO_KK */}
             <div className="form-group">
               <label className="form-label">NO_KK (16 Digit)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="510601xxxxxxxxxx"
                 maxLength={16}
@@ -473,8 +473,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NIK */}
             <div className="form-group">
               <label className="form-label">NIK (16 Digit Wajib)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="510601xxxxxxxxxx"
                 maxLength={16}
@@ -487,8 +487,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NAMA_LENGKAP */}
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label className="form-label">NAMA_LENGKAP</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nama lengkap sesuai KTP/KK"
                 value={formData.nama}
@@ -500,7 +500,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* JENIS_KELAMIN */}
             <div className="form-group">
               <label className="form-label">JENIS_KELAMIN</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.jenisKelamin}
                 onChange={(e) => handleInputChange('jenisKelamin', e.target.value)}
@@ -513,8 +513,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* TMPT_LHR */}
             <div className="form-group">
               <label className="form-label">TMPT_LHR (Tempat Lahir)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="cth: Bangli / Denpasar"
                 value={formData.tempatLahir}
@@ -525,8 +525,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* TGL_LHR */}
             <div className="form-group">
               <label className="form-label">TGL_LHR (Tanggal Lahir)</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="form-input"
                 value={formData.tanggalLahir}
                 onChange={(e) => handleInputChange('tanggalLahir', e.target.value)}
@@ -537,8 +537,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* USIA (Calculated) */}
             <div className="form-group">
               <label className="form-label">USIA (Hitung Otomatis)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 value={`${calculatedAge} Tahun`}
                 disabled
@@ -549,8 +549,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NO_AKTA_LHR */}
             <div className="form-group">
               <label className="form-label">NO_AKTA_LHR</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nomor Akta Kelahiran"
                 value={formData.noAktaLahir}
@@ -561,7 +561,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* AGAMA */}
             <div className="form-group">
               <label className="form-label">AGAMA</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.agama}
                 onChange={(e) => handleInputChange('agama', e.target.value)}
@@ -575,7 +575,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* PENDIDIKAN */}
             <div className="form-group">
               <label className="form-label">PENDIDIKAN</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.pendidikan}
                 onChange={(e) => handleInputChange('pendidikan', e.target.value)}
@@ -589,7 +589,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* PEKERJAAN */}
             <div className="form-group">
               <label className="form-label">PEKERJAAN</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.pekerjaan}
                 onChange={(e) => handleInputChange('pekerjaan', e.target.value)}
@@ -603,7 +603,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* STATUS_KAWIN */}
             <div className="form-group">
               <label className="form-label">STATUS_KAWIN</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.statusKawin}
                 onChange={(e) => handleInputChange('statusKawin', e.target.value)}
@@ -617,8 +617,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NO_AKTA_KWN */}
             <div className="form-group">
               <label className="form-label">NO_AKTA_KWN (Akta Perkawinan)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nomor Akta Perkawinan / Perceraian"
                 value={formData.noAktaKawin}
@@ -629,7 +629,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* STATUS_HBKEL */}
             <div className="form-group">
               <label className="form-label">STATUS_HBKEL (Hubungan Keluarga)</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.statusHbkel}
                 onChange={(e) => handleInputChange('statusHbkel', e.target.value)}
@@ -643,7 +643,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* GOL_DARAH */}
             <div className="form-group">
               <label className="form-label">GOL_DARAH</label>
-              <select 
+              <select
                 className="form-select"
                 value={formData.golDarah}
                 onChange={(e) => handleInputChange('golDarah', e.target.value)}
@@ -657,8 +657,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NAMA_LGKP_AYAH */}
             <div className="form-group">
               <label className="form-label">NAMA_LGKP_AYAH</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nama Ayah Kandung"
                 value={formData.namaAyah}
@@ -669,8 +669,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NAMA_LGKP_IBU */}
             <div className="form-group">
               <label className="form-label">NAMA_LGKP_IBU</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nama Ibu Kandung"
                 value={formData.namaIbu}
@@ -681,8 +681,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* NAMA_KEPALA_KELUARGA */}
             <div className="form-group">
               <label className="form-label">NAMA_KEPALA_KELUARGA</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Nama Kepala Keluarga"
                 value={formData.namaKepalaKeluarga}
@@ -693,8 +693,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* ALAMAT */}
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label className="form-label">ALAMAT LENGKAP</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 placeholder="Jalan, RT/RW, No. Rumah"
                 value={formData.alamat}
@@ -705,8 +705,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* DUSUN */}
             <div className="form-group">
               <label className="form-label">DUSUN</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 value={formData.dusun}
                 onChange={(e) => handleInputChange('dusun', e.target.value)}
@@ -716,8 +716,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* DESA_KEL */}
             <div className="form-group">
               <label className="form-label">DESA_KEL</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 value={formData.desaKel}
                 onChange={(e) => handleInputChange('desaKel', e.target.value)}
@@ -727,8 +727,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             {/* KECAMATAN */}
             <div className="form-group">
               <label className="form-label">KECAMATAN</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="form-input"
                 value={formData.kecamatan}
                 onChange={(e) => handleInputChange('kecamatan', e.target.value)}
@@ -739,17 +739,17 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '3rem' }}>
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
+          <button
+            type="button"
+            className="btn btn-secondary"
             onClick={resetForm}
             style={{ padding: '0.75rem 1.5rem' }}
           >
             <RefreshCw size={16} /> Reset Form
           </button>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary"
             disabled={isSubmitting}
             style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}

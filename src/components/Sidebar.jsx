@@ -84,9 +84,9 @@ export default function Sidebar({
           position: 'sticky',
           top: '70px',
           alignSelf: 'flex-start',
-          background: 'rgba(15, 23, 42, 0.95)',
+          background: 'var(--bg-card)',
           backdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRight: '1px solid var(--border-color)',
           display: 'flex',
           flexDirection: 'column',
           padding: '1.25rem 0.875rem',
@@ -95,8 +95,8 @@ export default function Sidebar({
           zIndex: 30
         }}
       >
-        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+        <div style={{ padding: '0 0.5rem 0.75rem 0.5rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             Navigasi {isAdmin ? 'Admin' : 'Petugas Data'}
           </p>
           <span className={isAdmin ? 'badge badge-red' : 'badge badge-blue'} style={{ fontSize: '0.65rem' }}>
@@ -128,7 +128,7 @@ export default function Sidebar({
                   background: isActive 
                     ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)' 
                     : 'transparent',
-                  color: isActive ? '#ffffff' : '#94a3b8',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontWeight: isActive ? '700' : '500',
                   fontSize: '0.85rem',
                   cursor: 'pointer',
@@ -138,7 +138,7 @@ export default function Sidebar({
                 className="sidebar-item"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Icon size={18} color={isActive ? '#60a5fa' : '#64748b'} />
+                  <Icon size={18} color={isActive ? '#3b82f6' : 'var(--text-muted)'} />
                   <span>{item.label}</span>
                 </div>
 
@@ -147,8 +147,8 @@ export default function Sidebar({
                     fontSize: '0.65rem',
                     padding: '0.15rem 0.45rem',
                     borderRadius: '6px',
-                    background: isActive ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255, 255, 255, 0.06)',
-                    color: isActive ? '#93c5fd' : '#64748b',
+                    background: isActive ? 'rgba(59, 130, 246, 0.3)' : 'var(--bg-card)',
+                    color: isActive ? '#3b82f6' : 'var(--text-muted)',
                     fontWeight: '600'
                   }}>
                     {item.badge}
@@ -164,15 +164,15 @@ export default function Sidebar({
           marginTop: 'auto',
           padding: '0.875rem',
           borderRadius: '12px',
-          background: 'rgba(30, 41, 59, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           fontSize: '0.75rem',
           flexShrink: 0
         }}>
-          <div style={{ fontWeight: '700', color: '#f8fafc', marginBottom: '0.25rem' }}>
+          <div style={{ fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             Akses: {isAdmin ? 'Full Management (Admin)' : 'Input & Update Data (User)'}
           </div>
-          <p style={{ color: '#94a3b8', lineHeight: '1.4', margin: 0 }}>
+          <p style={{ color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
             5 BIP & 5 Recap Kependudukan Terintegrasi Desa Abuan.
           </p>
         </div>

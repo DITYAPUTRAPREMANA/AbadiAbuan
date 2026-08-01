@@ -61,7 +61,7 @@ export default function AdminDashboard({
             <ShieldAlert size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
               Dashboard Pengawasan Administrator
             </h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -93,7 +93,7 @@ export default function AdminDashboard({
               <Users size={18} />
             </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {calculateTotalPopulation()} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>jiwa</span>
           </div>
           <span className="badge badge-blue" style={{ marginTop: '0.5rem' }}>5 Banjar / BIP Active</span>
@@ -109,14 +109,14 @@ export default function AdminDashboard({
               <UserCheck size={18} />
             </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {users.length} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>petugas</span>
           </div>
           <button 
-            style={{ border: 'none', background: 'transparent', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
+            style={{ border: 'none', background: 'transparent', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
             onClick={onOpenUserManagement}
           >
-            Atur Akses & Role &rarr;
+            Atur Akses &amp; Role &rarr;
           </button>
         </div>
 
@@ -130,7 +130,7 @@ export default function AdminDashboard({
               <Activity size={18} />
             </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {calculateTotalRecapTransactions()} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>catatan</span>
           </div>
           <span className="badge badge-green" style={{ marginTop: '0.5rem' }}>5 Kategori Terintegrasi</span>
@@ -146,7 +146,7 @@ export default function AdminDashboard({
               <FileSpreadsheet size={18} />
             </div>
           </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
             Google Apps Script
           </div>
           <button 
@@ -164,7 +164,7 @@ export default function AdminDashboard({
         {/* BIP Banjar Databases Overview */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
               <Database size={18} color="#3b82f6" /> 5 Database Buku Induk Penduduk (BIP)
             </h3>
           </div>
@@ -183,13 +183,13 @@ export default function AdminDashboard({
                       boxShadow: `0 0 8px ${bip.color}`
                     }} />
                     <div>
-                      <h4 style={{ fontSize: '0.9375rem', fontWeight: 700, margin: 0 }}>{bip.name}</h4>
+                      <h4 style={{ fontSize: '0.9375rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{bip.name}</h4>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Kode: {bip.code}</span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc' }}>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                       {count} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>jiwa</span>
                     </span>
                     <button 
@@ -213,7 +213,7 @@ export default function AdminDashboard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Quick Actions Panel */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
               <Sliders size={18} color="#ef4444" /> Aksi Cepat Administrator
             </h3>
 
@@ -231,7 +231,7 @@ export default function AdminDashboard({
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={onOpenUserManagement}
               >
-                <Users size={18} color="#ef4444" /> Kelola / Tambah Akun User & Role
+                <Users size={18} color="#ef4444" /> Kelola / Tambah Akun User &amp; Role
               </button>
 
               <button 
@@ -239,7 +239,7 @@ export default function AdminDashboard({
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={() => setActiveTab('bip_databases')}
               >
-                <Database size={18} color="#3b82f6" /> Lihat & Edit Seluruh Master Database BIP
+                <Database size={18} color="#3b82f6" /> Lihat &amp; Edit Seluruh Master Database BIP
               </button>
 
               <button 

@@ -141,8 +141,8 @@ export default function BipDatabaseView({
                   padding: '0.625rem 1.25rem',
                   borderRadius: '10px',
                   border: isSelected ? `1px solid ${bip.color}` : '1px solid var(--border-color)',
-                  background: isSelected ? 'rgba(30, 41, 59, 0.9)' : 'rgba(15, 23, 42, 0.4)',
-                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+                  background: isSelected ? 'var(--bg-card)' : 'transparent',
+                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontWeight: isSelected ? 700 : 500,
                   fontSize: '0.85rem',
                   cursor: 'pointer',
@@ -220,7 +220,7 @@ export default function BipDatabaseView({
                     <td><span className="badge badge-gray">{item.nr || '-'}</span></td>
                     <td><code>{item.no_kk}</code></td>
                     <td><strong><code>{item.nik}</code></strong></td>
-                    <td style={{ fontWeight: 700, color: '#f8fafc' }}>{item.nama}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.nama}</td>
                     <td>{item.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}</td>
                     <td>{item.tempatLahir}, {item.tanggalLahir}</td>
                     <td><strong>{item.umur} Thn</strong></td>
@@ -292,7 +292,7 @@ export default function BipDatabaseView({
           padding: '1.5rem'
         }}>
           <div className="glass-panel" style={{ maxWidth: '750px', width: '100%', maxHeight: '85vh', overflowY: 'auto', padding: '1.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               <div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
                   Detail Lengkap Penduduk BIP: {selectedRecordForDetail.nama}

@@ -79,7 +79,7 @@ export default function LoginPage({ onLoginSuccess, onBackToLanding }) {
             alt="Logo Desa Abuan" 
             style={{ height: '54px', width: 'auto', marginBottom: '0.75rem', filter: 'drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4))' }} 
           />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 0.25rem 0' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 0.25rem 0' }}>
             Portal Login Sistem BIP
           </h2>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>

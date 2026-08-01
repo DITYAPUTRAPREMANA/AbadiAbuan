@@ -14,6 +14,20 @@ import { getBipDatabases, getRecapDatabases, initializeStorage, resetDatabaseToS
 import { getCurrentUser, logoutUser } from './services/authService';
 
 export default function App() {
+  // Theme State: 'dark' | 'light'
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Page View State: 'landing' | 'login' | 'app'
   const [pageView, setPageView] = useState('landing');
   const [currentUser, setCurrentUser] = useState(null);
@@ -79,6 +93,8 @@ export default function App() {
     return (
       <LandingPage 
         onNavigateLogin={() => setPageView('login')}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
     );
   }
@@ -105,6 +121,8 @@ export default function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenUserManagement={() => setIsUserManagementOpen(true)}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {/* Main Workspace Layout */}

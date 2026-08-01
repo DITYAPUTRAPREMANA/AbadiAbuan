@@ -65,7 +65,7 @@ export default function UserDashboard({
             <UserCheck size={26} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
               Dashboard Operational Petugas Data BIP
             </h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -85,8 +85,8 @@ export default function UserDashboard({
 
       {/* Search & Update Resident Tool */}
       <div className="glass-panel" style={{ padding: '1.5rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Search size={18} color="#3b82f6" /> Cari & Update Data Penduduk Lama (Timpa Data)
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+          <Search size={18} color="#3b82f6" /> Cari &amp; Update Data Penduduk Lama (Timpa Data)
         </h3>
         <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
           Ketik NIK atau Nama Penduduk untuk memperbarui data lama yang telah terdaftar di database BIP.
@@ -116,7 +116,7 @@ export default function UserDashboard({
               <div style={{
                 padding: '1rem',
                 borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'var(--bg-card)',
                 color: 'var(--text-secondary)',
                 fontSize: '0.875rem',
                 textAlign: 'center'
@@ -140,7 +140,7 @@ export default function UserDashboard({
                     {searchResults.map(res => (
                       <tr key={res.id}>
                         <td><code>{res.nik}</code></td>
-                        <td style={{ fontWeight: 600 }}>{res.nama}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{res.nama}</td>
                         <td>{res.jenisKelamin}</td>
                         <td>
                           <span className="badge badge-blue">{res.domisili}</span>
@@ -171,7 +171,7 @@ export default function UserDashboard({
 
       {/* 5 Category Quick Shortcuts */}
       <div>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>
           Pilih Kategori Input Data (5 Kategori)
         </h3>
 
@@ -190,7 +190,7 @@ export default function UserDashboard({
               <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}>
                 <UserPlus size={20} />
               </div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Pindah Datang</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Pindah Datang</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
               Input data penduduk baru dari luar wilayah.
@@ -207,7 +207,7 @@ export default function UserDashboard({
               <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
                 <Building2 size={20} />
               </div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Pindah Masuk</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Pindah Masuk</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
               Input perpindahan antar banjar / dusun lokal.
@@ -224,7 +224,7 @@ export default function UserDashboard({
               <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.2)', color: '#c084fc' }}>
                 <Baby size={20} />
               </div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Lahir</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Lahir</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
               Input kelahiran anak/bayi baru.
@@ -241,10 +241,10 @@ export default function UserDashboard({
               <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
                 <UserMinus size={20} />
               </div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Meninggal</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Meninggal</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
-              Input kematian & update status dari BIP aktif.
+              Input kematian &amp; update status dari BIP aktif.
             </p>
           </div>
 
@@ -258,7 +258,7 @@ export default function UserDashboard({
               <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
                 <Accessibility size={20} />
               </div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>Disabilitas</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Disabilitas</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
               Input/update data ragam disabilitas warga.
@@ -269,7 +269,7 @@ export default function UserDashboard({
 
       {/* BIP Databases Overview for Petugas */}
       <div className="glass-panel" style={{ padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
           <Database size={18} color="#3b82f6" /> Ringkasan Data 5 BIP Desa Abuan
         </h3>
 
@@ -280,13 +280,13 @@ export default function UserDashboard({
               <div key={bip.id} className="glass-card" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: bip.color }} />
-                  <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>{bip.name}</span>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>{bip.name}</span>
                 </div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f8fafc' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {count} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>jiwa</span>
                 </div>
                 <button 
-                  style={{ border: 'none', background: 'transparent', color: '#60a5fa', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
+                  style={{ border: 'none', background: 'transparent', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
                   onClick={() => {
                     setSelectedBipName(bip.name);
                     setActiveTab('bip_databases');

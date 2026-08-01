@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileSpreadsheet, Menu, X, LogOut, Shield, UserCheck, Users } from 'lucide-react';
+import { FileSpreadsheet, Menu, X, LogOut, Shield, UserCheck, Users, Sun, Moon } from 'lucide-react';
 import { getSheetsConfig } from '../services/sheetsService';
 
 export default function Navbar({ 
@@ -9,7 +9,9 @@ export default function Navbar({
   setIsMobileMenuOpen,
   currentUser,
   onLogout,
-  onOpenUserManagement
+  onOpenUserManagement,
+  theme = 'dark',
+  toggleTheme
 }) {
   const config = getSheetsConfig();
   const isConnected = !!config.webAppUrl;
@@ -18,9 +20,9 @@ export default function Navbar({
   return (
     <header style={{
       height: '70px',
-      background: 'rgba(15, 23, 42, 0.85)',
+      background: 'var(--bg-card)',
       backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+      borderBottom: '1px solid var(--border-color)',
       position: 'sticky',
       top: 0,
       zIndex: 40,
@@ -55,18 +57,37 @@ export default function Navbar({
             }}
           />
           <div>
-            <h1 style={{ fontSize: '1rem', fontWeight: '800', letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #ffffff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
-              BIP DESA ABUAN
+            <h1 style={{ fontSize: '1.05rem', fontWeight: '900', letterSpacing: '0.02em', margin: 0, color: 'var(--text-primary)' }}>
+              ABADI <span style={{ color: '#3b82f6' }}>ABUAN</span>
             </h1>
-            <p className="desktop-only" style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '500', margin: 0 }}>
-              Sistem Information Kependudukan 5 BIP
+            <p className="desktop-only" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: '600', margin: 0 }}>
+              Sistem Informasi Kependudukan 5 BIP
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Controls: User Profile & Actions */}
+      {/* Right Controls: User Profile, Theme Switcher & Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Light / Dark Mode Toggle Button */}
+        {toggleTheme && (
+          <button
+            onClick={toggleTheme}
+            className="btn btn-secondary"
+            style={{ padding: '0.45rem 0.75rem', borderRadius: '10px' }}
+            title={theme === 'dark' ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun size={18} color="#fbbf24" />
+            ) : (
+              <Moon size={18} color="#6366f1" />
+            )}
+            <span className="desktop-only" style={{ fontSize: '0.8125rem' }}>
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </span>
+          </button>
+        )}
+
         {/* User Info Badge */}
         {currentUser && (
           <div className="glass-card" style={{
@@ -79,7 +100,7 @@ export default function Navbar({
           }}>
             {isAdmin ? <Shield size={16} color="#ef4444" /> : <UserCheck size={16} color="#3b82f6" />}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontWeight: 700, color: '#f8fafc', lineHeight: 1.2 }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                 {currentUser.nama}
               </span>
               <span className={isAdmin ? 'badge badge-red' : 'badge badge-blue'} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', alignSelf: 'flex-start' }}>
