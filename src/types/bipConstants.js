@@ -42,8 +42,8 @@ export const INPUT_CATEGORIES = [
   {
     id: 'disabilitas',
     name: 'Disabilitas',
-    type: 'UPDATE',
-    description: 'Pencatatan data kependudukan khusus warga penyandang disabilitas.',
+    type: 'ADD',
+    description: 'Pencatatan & penambahan data kependudukan khusus warga penyandang disabilitas.',
     recapKey: 'recap_disabilitas',
     badgeColor: 'badge-amber'
   }

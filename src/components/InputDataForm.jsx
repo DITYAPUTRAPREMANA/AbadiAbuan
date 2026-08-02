@@ -458,7 +458,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NO_KK */}
             <div className="form-group">
-              <label className="form-label">NO_KK (16 Digit)</label>
+              <label className="form-label">NO KK (16 Digit)</label>
               <input
                 type="text"
                 className="form-input"
@@ -486,7 +486,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NAMA_LENGKAP */}
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">NAMA_LENGKAP</label>
+              <label className="form-label">NAMA LENGKAP</label>
               <input
                 type="text"
                 className="form-input"
@@ -499,7 +499,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* JENIS_KELAMIN */}
             <div className="form-group">
-              <label className="form-label">JENIS_KELAMIN</label>
+              <label className="form-label">JENIS KELAMIN</label>
               <select
                 className="form-select"
                 value={formData.jenisKelamin}
@@ -512,7 +512,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* TMPT_LHR */}
             <div className="form-group">
-              <label className="form-label">TMPT_LHR (Tempat Lahir)</label>
+              <label className="form-label">TEMPAT LAHIR</label>
               <input
                 type="text"
                 className="form-input"
@@ -524,7 +524,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* TGL_LHR */}
             <div className="form-group">
-              <label className="form-label">TGL_LHR (Tanggal Lahir)</label>
+              <label className="form-label">TANGGAL LAHIR</label>
               <input
                 type="date"
                 className="form-input"
@@ -548,7 +548,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NO_AKTA_LHR */}
             <div className="form-group">
-              <label className="form-label">NO_AKTA_LHR</label>
+              <label className="form-label">NO AKTA KELAHIRAN</label>
               <input
                 type="text"
                 className="form-input"
@@ -602,7 +602,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* STATUS_KAWIN */}
             <div className="form-group">
-              <label className="form-label">STATUS_KAWIN</label>
+              <label className="form-label">STATUS KAWIN</label>
               <select
                 className="form-select"
                 value={formData.statusKawin}
@@ -616,7 +616,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NO_AKTA_KWN */}
             <div className="form-group">
-              <label className="form-label">NO_AKTA_KWN (Akta Perkawinan)</label>
+              <label className="form-label">NO AKTA PERKAWINAN </label>
               <input
                 type="text"
                 className="form-input"
@@ -628,7 +628,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* STATUS_HBKEL */}
             <div className="form-group">
-              <label className="form-label">STATUS_HBKEL (Hubungan Keluarga)</label>
+              <label className="form-label">STATUS HUBUNGAN KELUARGA</label>
               <select
                 className="form-select"
                 value={formData.statusHbkel}
@@ -642,7 +642,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* GOL_DARAH */}
             <div className="form-group">
-              <label className="form-label">GOL_DARAH</label>
+              <label className="form-label">GOLONGAN DARAH</label>
               <select
                 className="form-select"
                 value={formData.golDarah}
@@ -656,7 +656,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NAMA_LGKP_AYAH */}
             <div className="form-group">
-              <label className="form-label">NAMA_LGKP_AYAH</label>
+              <label className="form-label">NAMA LENGKAP AYAH</label>
               <input
                 type="text"
                 className="form-input"
@@ -668,7 +668,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NAMA_LGKP_IBU */}
             <div className="form-group">
-              <label className="form-label">NAMA_LGKP_IBU</label>
+              <label className="form-label">NAMA LENGKAP IBU</label>
               <input
                 type="text"
                 className="form-input"
@@ -680,7 +680,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NAMA_KEPALA_KELUARGA */}
             <div className="form-group">
-              <label className="form-label">NAMA_KEPALA_KELUARGA</label>
+              <label className="form-label">NAMA KEPALA KELUARGA</label>
               <input
                 type="text"
                 className="form-input"
@@ -715,7 +715,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* DESA_KEL */}
             <div className="form-group">
-              <label className="form-label">DESA_KEL</label>
+              <label className="form-label">DESA ADAT</label>
               <input
                 type="text"
                 className="form-input"

@@ -7,12 +7,18 @@ import {
   Trash2, 
   Filter, 
   Eye, 
-  ChevronRight,
-  ShieldAlert,
-  UserCheck
+  RotateCcw,
+  FileSpreadsheet
 } from 'lucide-react';
-import { BIP_LOCATIONS } from '../types/bipConstants';
+import { 
+  BIP_LOCATIONS, 
+  AGE_GROUPS, 
+  EDUCATION_LEVELS, 
+  JOB_CATEGORIES, 
+  DISABILITY_TYPES 
+} from '../types/bipConstants';
 import { deleteResidentRecord } from '../services/storageService';
+import { exportResidentsToExcel } from '../utils/excelExport';
 
 export default function BipDatabaseView({ 
   bipData, 
@@ -23,19 +29,91 @@ export default function BipDatabaseView({
   currentUserRole = 'user'
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [ageGroupFilter, setAgeGroupFilter] = useState('');
+  const [educationFilter, setEducationFilter] = useState('');
+  const [jobFilter, setJobFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [disabilityFilter, setDisabilityFilter] = useState('');
   const [selectedRecordForDetail, setSelectedRecordForDetail] = useState(null);
 
-  const currentList = bipData[selectedBipName] || [];
+  // Calculate list based on location selection
+  const allResidents = Object.values(bipData).flat();
+  const currentList = selectedBipName === 'Semua BIP' 
+    ? allResidents 
+    : (bipData[selectedBipName] || []);
 
+  // Multi-Category Filter Logic
   const filteredList = currentList.filter(item => {
-    const term = searchTerm.toLowerCase();
-    return (
-      (item.nama && item.nama.toLowerCase().includes(term)) ||
-      (item.nik && item.nik.toLowerCase().includes(term)) ||
-      (item.no_kk && item.no_kk.toLowerCase().includes(term)) ||
-      (item.pekerjaan && item.pekerjaan.toLowerCase().includes(term))
-    );
+    // 1. Search term match
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = (
+        (item.nama && item.nama.toLowerCase().includes(term)) ||
+        (item.nik && item.nik.toLowerCase().includes(term)) ||
+        (item.no_kk && item.no_kk.toLowerCase().includes(term)) ||
+        (item.pekerjaan && item.pekerjaan.toLowerCase().includes(term)) ||
+        (item.alamat && item.alamat.toLowerCase().includes(term))
+      );
+      if (!matchesSearch) return false;
+    }
+
+    // 2. Kelompok Umur Filter
+    if (ageGroupFilter) {
+      const age = Number(item.umur) || 0;
+      if (ageGroupFilter === 'Balita (0 - 5 Tahun)' && !(age >= 0 && age <= 5)) return false;
+      if (ageGroupFilter === 'Anak-anak (6 - 12 Tahun)' && !(age >= 6 && age <= 12)) return false;
+      if (ageGroupFilter === 'Remaja (13 - 17 Tahun)' && !(age >= 13 && age <= 17)) return false;
+      if (ageGroupFilter === 'Dewasa Muda (18 - 35 Tahun)' && !(age >= 18 && age <= 35)) return false;
+      if (ageGroupFilter === 'Dewasa (36 - 59 Tahun)' && !(age >= 36 && age <= 59)) return false;
+      if (ageGroupFilter === 'Lansia (60+ Tahun)' && !(age >= 60)) return false;
+    }
+
+    // 3. Pendidikan Filter
+    if (educationFilter && item.pendidikan !== educationFilter) {
+      return false;
+    }
+
+    // 4. Pekerjaan Filter
+    if (jobFilter && item.pekerjaan !== jobFilter) {
+      return false;
+    }
+
+    // 5. Jenis Kelamin Filter
+    if (genderFilter && item.jenisKelamin !== genderFilter) {
+      return false;
+    }
+
+    // 6. Jenis Disabilitas Filter
+    if (disabilityFilter) {
+      if (disabilityFilter === 'Ada Disabilitas') {
+        if (!item.disabilitas || item.disabilitas === 'Tidak Ada') return false;
+      } else if (disabilityFilter === 'Tidak Ada') {
+        if (item.disabilitas && item.disabilitas !== 'Tidak Ada') return false;
+      } else if (item.disabilitas !== disabilityFilter) {
+        return false;
+      }
+    }
+
+    return true;
   });
+
+  const activeFiltersCount = [
+    ageGroupFilter,
+    educationFilter,
+    jobFilter,
+    genderFilter,
+    disabilityFilter,
+    searchTerm
+  ].filter(Boolean).length;
+
+  const resetAllFilters = () => {
+    setSearchTerm('');
+    setAgeGroupFilter('');
+    setEducationFilter('');
+    setJobFilter('');
+    setGenderFilter('');
+    setDisabilityFilter('');
+  };
 
   const handleDelete = (recordId, nama) => {
     if (currentUserRole !== 'admin') {
@@ -48,60 +126,8 @@ export default function BipDatabaseView({
     }
   };
 
-  const exportToCSV = () => {
-    if (filteredList.length === 0) return;
-    
-    const headers = [
-      'NO', 'NR', 'N_KK', 'N_AK', 'NO_KK', 'NIK', 'NAMA_LENGKAP', 'JENIS_KELAMIN', 
-      'TMPT_LHR', 'TGL_LHR', 'USIA', 'NO_AKTA_LHR', 'AGAMA', 'PENDIDIKAN', 'PEKERJAAN', 
-      'STATUS_KAWIN', 'NO_AKTA_KWN', 'STATUS_HBKEL', 'GOL_DARAH', 'NAMA_LGKP_AYAH', 
-      'NAMA_LGKP_IBU', 'NAMA_KEPALA_KELUARGA', 'ALAMAT', 'DUSUN', 'DESA_KEL', 'KECAMATAN', 'DISABILITAS'
-    ];
-
-    const csvRows = [];
-    csvRows.push(headers.join(','));
-
-    filteredList.forEach((row, idx) => {
-      const values = [
-        row.no || idx + 1,
-        `"${row.nr || ''}"`,
-        `"${row.n_kk || ''}"`,
-        `"${row.n_ak || ''}"`,
-        `"${row.no_kk || ''}"`,
-        `"${row.nik || ''}"`,
-        `"${row.nama || ''}"`,
-        `"${row.jenisKelamin || ''}"`,
-        `"${row.tempatLahir || ''}"`,
-        `"${row.tanggalLahir || ''}"`,
-        row.umur || 0,
-        `"${row.noAktaLahir || ''}"`,
-        `"${row.agama || ''}"`,
-        `"${row.pendidikan || ''}"`,
-        `"${row.pekerjaan || ''}"`,
-        `"${row.statusKawin || ''}"`,
-        `"${row.noAktaKawin || ''}"`,
-        `"${row.statusHbkel || ''}"`,
-        `"${row.golDarah || ''}"`,
-        `"${row.namaAyah || ''}"`,
-        `"${row.namaIbu || ''}"`,
-        `"${row.namaKepalaKeluarga || ''}"`,
-        `"${row.alamat || ''}"`,
-        `"${row.dusun || ''}"`,
-        `"${row.desaKel || ''}"`,
-        `"${row.kecamatan || ''}"`,
-        `"${row.disabilitas || 'Tidak Ada'}"`
-      ];
-      csvRows.push(values.join(','));
-    });
-
-    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${selectedBipName.replace(/\s+/g, '_')}_Data_Penduduk.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExportExcel = () => {
+    exportResidentsToExcel(filteredList, selectedBipName);
   };
 
   return (
@@ -118,8 +144,8 @@ export default function BipDatabaseView({
             </p>
           </div>
 
-          <button className="btn btn-secondary" onClick={exportToCSV}>
-            <Download size={16} /> Export CSV Excel
+          <button className="btn btn-primary" onClick={handleExportExcel} disabled={filteredList.length === 0}>
+            <FileSpreadsheet size={18} /> Download Excel (.xlsx) ({filteredList.length})
           </button>
         </div>
 
@@ -130,6 +156,28 @@ export default function BipDatabaseView({
           overflowX: 'auto',
           paddingBottom: '0.25rem'
         }}>
+          <button
+            onClick={() => setSelectedBipName('Semua BIP')}
+            style={{
+              padding: '0.625rem 1.25rem',
+              borderRadius: '10px',
+              border: selectedBipName === 'Semua BIP' ? '1px solid #3b82f6' : '1px solid var(--border-color)',
+              background: selectedBipName === 'Semua BIP' ? 'var(--bg-card)' : 'transparent',
+              color: selectedBipName === 'Semua BIP' ? 'var(--text-primary)' : 'var(--text-secondary)',
+              fontWeight: selectedBipName === 'Semua BIP' ? 700 : 500,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
+            Semua BIP ({allResidents.length})
+          </button>
+
           {BIP_LOCATIONS.map(bip => {
             const isSelected = selectedBipName === bip.name;
             const count = bipData[bip.name] ? bipData[bip.name].length : 0;
@@ -161,22 +209,144 @@ export default function BipDatabaseView({
         </div>
       </div>
 
-      {/* Filter and Search controls */}
-      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              className="form-input"
-              style={{ paddingLeft: '2.75rem' }}
-              placeholder="Cari berdasarkan NIK, Nama, No KK, Pekerjaan..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      {/* Filter and Search Panel */}
+      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Filter size={18} color="#3b82f6" />
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
+              Filter Data Penduduk Multi-Kategori
+            </h3>
+            {activeFiltersCount > 0 && (
+              <span className="badge badge-blue">{activeFiltersCount} Filter Aktif</span>
+            )}
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Menampilkan <strong>{filteredList.length}</strong> dari <strong>{currentList.length}</strong> data di {selectedBipName}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Menampilkan <strong>{filteredList.length}</strong> dari <strong>{currentList.length}</strong> data ({selectedBipName})
+            </span>
+
+            {activeFiltersCount > 0 && (
+              <button 
+                className="btn btn-secondary" 
+                onClick={resetAllFilters}
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                <RotateCcw size={14} /> Reset Filter
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search Input */}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input 
+            type="text" 
+            className="form-input"
+            style={{ paddingLeft: '2.75rem' }}
+            placeholder="Cari kata kunci NIK, Nama Penduduk, No KK, Pekerjaan, Alamat..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* 5 Filter Category Dropdowns */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
+          gap: '0.875rem' 
+        }}>
+          {/* 1. Kelompok Umur */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Kelompok Umur
+            </label>
+            <select 
+              className="form-input"
+              value={ageGroupFilter}
+              onChange={(e) => setAgeGroupFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Kelompok Umur</option>
+              {AGE_GROUPS.map(ag => (
+                <option key={ag} value={ag}>{ag}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Pendidikan */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Pendidikan
+            </label>
+            <select 
+              className="form-input"
+              value={educationFilter}
+              onChange={(e) => setEducationFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Pendidikan</option>
+              {EDUCATION_LEVELS.map(ed => (
+                <option key={ed} value={ed}>{ed}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 3. Pekerjaan */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Pekerjaan
+            </label>
+            <select 
+              className="form-input"
+              value={jobFilter}
+              onChange={(e) => setJobFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Pekerjaan</option>
+              {JOB_CATEGORIES.map(job => (
+                <option key={job} value={job}>{job}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 4. Jenis Kelamin */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Jenis Kelamin
+            </label>
+            <select 
+              className="form-input"
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Jenis Kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          {/* 5. Jenis Disabilitas */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Jenis Disabilitas
+            </label>
+            <select 
+              className="form-input"
+              value={disabilityFilter}
+              onChange={(e) => setDisabilityFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Status Disabilitas</option>
+              <option value="Tidak Ada">Tidak Ada (Non-Disabilitas)</option>
+              <option value="Ada Disabilitas">Ada Disabilitas (Semua Type)</option>
+              {DISABILITY_TYPES.filter(d => d !== 'Lainnya').map(dis => (
+                <option key={dis} value={dis}>{dis}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -188,7 +358,7 @@ export default function BipDatabaseView({
             <thead>
               <tr>
                 <th>NO</th>
-                <th>NR</th>
+                <th>BIP / BANJAR</th>
                 <th>NO_KK</th>
                 <th>NIK</th>
                 <th>NAMA_LENGKAP</th>
@@ -210,14 +380,14 @@ export default function BipDatabaseView({
               {filteredList.length === 0 ? (
                 <tr>
                   <td colSpan={17} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                    Tidak ada data penduduk ditemukan di {selectedBipName}.
+                    Tidak ada data penduduk yang cocok dengan kriteria filter di {selectedBipName}.
                   </td>
                 </tr>
               ) : (
                 filteredList.map((item, idx) => (
                   <tr key={item.id || idx}>
                     <td>{item.no || idx + 1}</td>
-                    <td><span className="badge badge-gray">{item.nr || '-'}</span></td>
+                    <td><span className="badge badge-blue">{item.dusun || item.domisili || selectedBipName}</span></td>
                     <td><code>{item.no_kk}</code></td>
                     <td><strong><code>{item.nik}</code></strong></td>
                     <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{item.nama}</td>
@@ -297,7 +467,7 @@ export default function BipDatabaseView({
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>
                   Detail Lengkap Penduduk BIP: {selectedRecordForDetail.nama}
                 </h3>
-                <span className="badge badge-blue">{selectedRecordForDetail.domisili}</span>
+                <span className="badge badge-blue">{selectedRecordForDetail.domisili || selectedRecordForDetail.dusun}</span>
               </div>
               <button 
                 className="btn btn-secondary"
@@ -329,7 +499,7 @@ export default function BipDatabaseView({
               <div><strong>Nama Ibu:</strong> {selectedRecordForDetail.namaIbu}</div>
               <div><strong>Kepala Keluarga:</strong> {selectedRecordForDetail.namaKepalaKeluarga}</div>
               <div style={{ gridColumn: 'span 2' }}><strong>Alamat:</strong> {selectedRecordForDetail.alamat}</div>
-              <div><strong>Dusun:</strong> {selectedRecordForDetail.dusun}</div>
+              <div><strong>Dusun:</strong> {selectedRecordForDetail.dusun || selectedRecordForDetail.domisili}</div>
               <div><strong>Desa/Kel:</strong> {selectedRecordForDetail.desaKel}</div>
               <div><strong>Kecamatan:</strong> {selectedRecordForDetail.kecamatan}</div>
               <div><strong>Disabilitas:</strong> {selectedRecordForDetail.disabilitas || 'Tidak Ada'}</div>
@@ -353,3 +523,4 @@ export default function BipDatabaseView({
     </div>
   );
 }
+

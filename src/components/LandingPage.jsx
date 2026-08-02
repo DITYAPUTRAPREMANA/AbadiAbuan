@@ -387,12 +387,8 @@ export default function LandingPage({ onNavigateLogin, theme = 'dark', toggleThe
         fontSize: '0.85rem',
         color: 'var(--text-secondary)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-          <GraduationCap size={18} color="#60a5fa" />
-          Dibuat Oleh Mahasiswa KKN PPM Desa Abuan, Susut, Bangli Periode XXXIII Universitas Udayana
-        </div>
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-          © 2026 Pemerintah Desa Abuan, Kecamatan Susut, Kabupaten Bangli, Bali. All rights reserved.
+          © 2026 KKN PPM Desa Abuan, Susut, Bangli Periode XXXIII Universitas Udayana
         </p>
       </footer>
     </div>

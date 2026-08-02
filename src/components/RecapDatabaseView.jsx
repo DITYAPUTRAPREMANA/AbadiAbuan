@@ -1,41 +1,88 @@
 import React, { useState } from 'react';
-import { FileText, Search, Download, Calendar, Eye, X } from 'lucide-react';
-import { RECAP_DATABASES, INPUT_CATEGORIES } from '../types/bipConstants';
+import { FileText, Search, Calendar, Eye, X, FileSpreadsheet, Filter, RotateCcw } from 'lucide-react';
+import { RECAP_DATABASES, INPUT_CATEGORIES, BIP_LOCATIONS } from '../types/bipConstants';
+import { exportRecapToExcel } from '../utils/excelExport';
 
 export default function RecapDatabaseView({ recapData, selectedRecapId, setSelectedRecapId }) {
-  const [activeRecapId, setActiveRecapId] = useState(selectedRecapId || RECAP_DATABASES[0].id);
+  const [activeRecapId, setActiveRecapId] = useState(selectedRecapId || 'all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [bipFilter, setBipFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [detailModalItem, setDetailModalItem] = useState(null);
 
-  const currentRecapMeta = RECAP_DATABASES.find(r => r.id === activeRecapId) || RECAP_DATABASES[0];
-  const categoryMeta = INPUT_CATEGORIES.find(c => c.recapKey === activeRecapId) || INPUT_CATEGORIES[0];
-  const isAdd = categoryMeta.type === 'ADD';
+  const allRecapList = Object.values(recapData).flat();
+  const currentList = activeRecapId === 'all'
+    ? allRecapList
+    : (recapData[activeRecapId] || []);
 
-  const currentList = recapData[activeRecapId] || [];
+  const currentRecapMeta = activeRecapId === 'all'
+    ? { id: 'all', name: 'Semua Database Recap Transaksi', category: 'Semua Kategori' }
+    : (RECAP_DATABASES.find(r => r.id === activeRecapId) || RECAP_DATABASES[0]);
 
+  const categoryMeta = activeRecapId === 'all'
+    ? {
+      id: 'all',
+      name: 'Semua Kategori',
+      type: 'ALL',
+      description: 'Menampilkan seluruh riwayat transaksi kependudukan (Lahir, Pindah, Meninggal, Disabilitas).',
+      recapKey: 'all',
+      badgeColor: 'badge-blue'
+    }
+    : (INPUT_CATEGORIES.find(c => c.recapKey === activeRecapId) || INPUT_CATEGORIES[0]);
+
+  const isRemove = categoryMeta.type === 'REMOVE';
+
+  // Multi-Criteria Filtering Logic for Recap
   const filteredList = currentList.filter(item => {
-    return (item.nama || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (item.nik || '').includes(searchTerm) ||
-           (item.domisili || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (item.keterangan || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // 1. Text Search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = (
+        (item.nama || '').toLowerCase().includes(term) ||
+        (item.nik || '').includes(term) ||
+        (item.domisili || '').toLowerCase().includes(term) ||
+        (item.keterangan || '').toLowerCase().includes(term) ||
+        (item.kategori || '').toLowerCase().includes(term)
+      );
+      if (!matchesSearch) return false;
+    }
+
+    // 2. BIP Domisili Filter
+    if (bipFilter && item.domisili !== bipFilter) {
+      return false;
+    }
+
+    // 3. Start Date Filter
+    if (startDate && item.tanggalTransaksi < startDate) {
+      return false;
+    }
+
+    // 4. End Date Filter
+    if (endDate && item.tanggalTransaksi > endDate) {
+      return false;
+    }
+
+    return true;
   });
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    if (filteredList.length === 0) return;
-    const headers = ['ID Recap', 'Kategori', 'NIK', 'Nama Penduduk', 'Domisili (BIP)', 'Tanggal Transaksi', 'Keterangan'];
-    const rows = filteredList.map(r => [
-      r.id, `"${r.kategori}"`, r.nik, `"${r.nama}"`, `"${r.domisili}"`, r.tanggalTransaksi, `"${r.keterangan}"`
-    ]);
+  const activeFiltersCount = [
+    searchTerm,
+    bipFilter,
+    startDate,
+    endDate
+  ].filter(Boolean).length;
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${currentRecapMeta.id}_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const resetAllFilters = () => {
+    setSearchTerm('');
+    setBipFilter('');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // Export to Excel (.xlsx)
+  const handleExportExcel = () => {
+    exportRecapToExcel(filteredList, currentRecapMeta.name);
   };
 
   return (
@@ -43,20 +90,49 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
       {/* Header */}
       <div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-          7 Database Recap (Catatan Rekapitulasi Transaksi)
+          Database Recap (Catatan Rekapitulasi Transaksi)
         </h2>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-          Catatan riwayat rekapitulasi setiap transaksi kependudukan (Anak Lahir, Pindah, Meninggal, Umur, Pekerjaan, Pendidikan).
+          Catatan riwayat rekapitulasi setiap transaksi kependudukan (Anak Lahir, Pindah Datang, Pindah Masuk, Meninggal, Disabilitas).
         </p>
       </div>
 
-      {/* 7 Recap Selector Tabs */}
+      {/* Recap Selector Tabs */}
       <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+        {/* All Recap Tab */}
+        <button
+          onClick={() => {
+            setActiveRecapId('all');
+            if (setSelectedRecapId) setSelectedRecapId('all');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.625rem 1rem',
+            borderRadius: '10px',
+            border: activeRecapId === 'all' ? '2px solid #3b82f6' : '1px solid var(--border-color)',
+            background: activeRecapId === 'all' ? 'var(--bg-card)' : 'transparent',
+            color: activeRecapId === 'all' ? 'var(--text-primary)' : 'var(--text-secondary)',
+            fontWeight: activeRecapId === 'all' ? '700' : '500',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap',
+            fontSize: '0.8125rem'
+          }}
+        >
+          <FileText size={14} color="#3b82f6" />
+          <span>Semua Data Recap</span>
+          <span className="badge badge-blue">
+            {allRecapList.length}
+          </span>
+        </button>
+
         {RECAP_DATABASES.map(db => {
           const isSelected = activeRecapId === db.id;
           const count = (recapData[db.id] || []).length;
           const cat = INPUT_CATEGORIES.find(c => c.recapKey === db.id);
-          const isAddCat = cat?.type === 'ADD';
+          const isRemoveCat = cat?.type === 'REMOVE';
 
           return (
             <button
@@ -71,7 +147,7 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
                 gap: '0.5rem',
                 padding: '0.625rem 1rem',
                 borderRadius: '10px',
-                border: isSelected ? `2px solid ${isAddCat ? '#10b981' : '#ef4444'}` : '1px solid var(--border-color)',
+                border: isSelected ? `2px solid ${isRemoveCat ? '#ef4444' : '#10b981'}` : '1px solid var(--border-color)',
                 background: isSelected ? 'var(--bg-card)' : 'transparent',
                 color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
                 fontWeight: isSelected ? '700' : '500',
@@ -81,7 +157,7 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
                 fontSize: '0.8125rem'
               }}
             >
-              <FileText size={14} color={isAddCat ? '#34d399' : '#f87171'} />
+              <FileText size={14} color={isRemoveCat ? '#f87171' : '#34d399'} />
               <span>{db.name}</span>
               <span className={`badge ${cat?.badgeColor || 'badge-blue'}`}>
                 {count}
@@ -99,13 +175,13 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '1rem',
-        borderLeft: `4px solid ${isAdd ? '#10b981' : '#ef4444'}`
+        borderLeft: `4px solid ${activeRecapId === 'all' ? '#3b82f6' : (isRemove ? '#ef4444' : '#10b981')}`
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
             <span className={`badge ${categoryMeta.badgeColor}`}>{categoryMeta.name}</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: isAdd ? '#10b981' : '#ef4444' }}>
-              {isAdd ? 'Efek: Menambah Data BIP' : 'Efek: Menghapus Data BIP (Non-Permanen)'}
+            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: activeRecapId === 'all' ? '#3b82f6' : (isRemove ? '#ef4444' : '#10b981') }}>
+              {activeRecapId === 'all' ? 'Seluruh Transaksi Kependudukan' : (isRemove ? 'Efek: Menghapus / Mengarsipkan Data dari BIP Active' : 'Efek: Menambah / Memperbarui Data di BIP')}
             </span>
           </div>
           <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-primary)' }}>
@@ -116,19 +192,58 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
           </p>
         </div>
 
-        <div style={{ textAlign: 'right' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Total Transaksi Tercatat</span>
-          <span style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--text-primary)' }}>{currentList.length}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Total Transaksi Tercatat</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--text-primary)' }}>{currentList.length}</span>
+          </div>
+          <button
+            onClick={handleExportExcel}
+            className="btn btn-primary"
+            disabled={filteredList.length === 0}
+          >
+            <FileSpreadsheet size={16} />
+            <span>Ekspor Excel (.xlsx) ({filteredList.length})</span>
+          </button>
         </div>
       </div>
 
-      {/* Filter & Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
+      {/* Filter Panel for Recap */}
+      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Filter size={18} color="#3b82f6" />
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
+              Filter Rekapitulasi Transaksi
+            </h3>
+            {activeFiltersCount > 0 && (
+              <span className="badge badge-blue">{activeFiltersCount} Filter Aktif</span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Menampilkan <strong>{filteredList.length}</strong> dari <strong>{currentList.length}</strong> catatan
+            </span>
+
+            {activeFiltersCount > 0 && (
+              <button
+                className="btn btn-secondary"
+                onClick={resetAllFilters}
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                <RotateCcw size={14} /> Reset Filter
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div style={{ position: 'relative', width: '100%' }}>
           <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
-            placeholder="Cari transaksi berdasarkan NIK, Nama, Domisili, Keterangan..."
+            placeholder="Cari kata kunci NIK, Nama Penduduk, Domisili, Keterangan Transaksi..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="form-input"
@@ -136,14 +251,58 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
           />
         </div>
 
-        <button
-          onClick={handleExportCSV}
-          className="btn btn-secondary"
-          disabled={filteredList.length === 0}
-        >
-          <Download size={16} />
-          <span>Ekspor Recap CSV ({filteredList.length})</span>
-        </button>
+        {/* Multi Filter Inputs */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '0.875rem'
+        }}>
+          {/* 1. BIP Domisili Filter */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Wilayah BIP Domisili
+            </label>
+            <select
+              className="form-input"
+              value={bipFilter}
+              onChange={(e) => setBipFilter(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            >
+              <option value="">Semua Banjar / BIP</option>
+              {BIP_LOCATIONS.map(b => (
+                <option key={b.id} value={b.name}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Start Date */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Dari Tanggal
+            </label>
+            <input
+              type="date"
+              className="form-input"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            />
+          </div>
+
+          {/* 3. End Date */}
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
+              Sampai Tanggal
+            </label>
+            <input
+              type="date"
+              className="form-input"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={{ fontSize: '0.8125rem', padding: '0.5rem' }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Recap Table */}
@@ -164,7 +323,7 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
             {filteredList.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-                  Belum ada rekapitulasi data pada {currentRecapMeta.name}.
+                  Tidak ada rekapitulasi data yang sesuai dengan kriteria filter.
                 </td>
               </tr>
             ) : (
@@ -177,7 +336,8 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
                     </div>
                   </td>
                   <td>
-                    <span className={`badge ${categoryMeta.badgeColor}`}>
+                    <span className={`badge ${INPUT_CATEGORIES.find(c => c.name === row.kategori)?.badgeColor || 'badge-blue'
+                      }`}>
                       {row.kategori}
                     </span>
                   </td>
@@ -279,3 +439,4 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
     </div>
   );
 }
+
