@@ -248,7 +248,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
             </h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
               {formMode === 'INSERT'
-                ? 'Lengkapi semua field standar kependudukan (26+ Kolom Excel BIP).'
+                ? 'Lengkapi semua field standar kependudukan'
                 : `Memperbarui data penduduk ID: ${editingRecordId}. Data lama di BIP akan digantikan.`}
             </p>
           </div>
@@ -405,7 +405,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
         {/* Main Fields Grid matching Excel Screenshot */}
         <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: '#60a5fa' }}>
-            2. Identitas Penduduk & Data Register (Sesuai Kolom Excel BIP)
+            2. Identitas Penduduk & Data Registerasi
           </h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>

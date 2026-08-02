@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  ShieldAlert, 
-  UserPlus, 
-  RefreshCw, 
-  Database, 
-  FileSpreadsheet, 
-  Activity, 
-  Layers, 
+import {
+  Users,
+  ShieldAlert,
+  UserPlus,
+  RefreshCw,
+  Database,
+  FileSpreadsheet,
+  Activity,
+  Layers,
   ArrowRight,
   Sliders,
   AlertTriangle,
@@ -15,12 +15,13 @@ import {
 } from 'lucide-react';
 import { BIP_LOCATIONS, RECAP_DATABASES } from '../types/bipConstants';
 import { getSystemUsers } from '../services/authService';
+import PopulationGrowthChartCard from './PopulationGrowthChartCard';
 
-export default function AdminDashboard({ 
-  bipData, 
-  recapData, 
-  setActiveTab, 
-  setSelectedBipName, 
+export default function AdminDashboard({
+  bipData,
+  recapData,
+  setActiveTab,
+  setSelectedBipName,
   setSelectedRecapId,
   onOpenUserManagement,
   onResetDatabase
@@ -112,7 +113,7 @@ export default function AdminDashboard({
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             {users.length} <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>petugas</span>
           </div>
-          <button 
+          <button
             style={{ border: 'none', background: 'transparent', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
             onClick={onOpenUserManagement}
           >
@@ -149,7 +150,7 @@ export default function AdminDashboard({
           <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.25rem' }}>
             Google Apps Script
           </div>
-          <button 
+          <button
             className="btn btn-secondary"
             style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', marginTop: '0.5rem' }}
             onClick={() => setActiveTab('spreadsheet_sync')}
@@ -158,6 +159,9 @@ export default function AdminDashboard({
           </button>
         </div>
       </div>
+
+      {/* Population Growth Chart Card with BIP Selector */}
+      <PopulationGrowthChartCard bipData={bipData} recapData={recapData} />
 
       {/* Main Content Layout: BIP Breakdown & Quick Controls */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
@@ -192,7 +196,7 @@ export default function AdminDashboard({
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                       {count} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>jiwa</span>
                     </span>
-                    <button 
+                    <button
                       className="btn btn-secondary"
                       style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
                       onClick={() => {
@@ -218,7 +222,7 @@ export default function AdminDashboard({
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <button 
+              <button
                 className="btn btn-primary"
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={() => setActiveTab('input_data')}
@@ -226,7 +230,7 @@ export default function AdminDashboard({
                 <UserPlus size={18} /> Input Data Kependudukan Baru (5 Kategori)
               </button>
 
-              <button 
+              <button
                 className="btn btn-secondary"
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={onOpenUserManagement}
@@ -234,7 +238,7 @@ export default function AdminDashboard({
                 <Users size={18} color="#ef4444" /> Kelola / Tambah Akun User &amp; Role
               </button>
 
-              <button 
+              <button
                 className="btn btn-secondary"
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={() => setActiveTab('bip_databases')}
@@ -242,7 +246,7 @@ export default function AdminDashboard({
                 <Database size={18} color="#3b82f6" /> Lihat &amp; Edit Seluruh Master Database BIP
               </button>
 
-              <button 
+              <button
                 className="btn btn-secondary"
                 style={{ justifyContent: 'flex-start', padding: '0.75rem 1rem' }}
                 onClick={() => setActiveTab('spreadsheet_sync')}
@@ -263,8 +267,8 @@ export default function AdminDashboard({
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
               Kembalikan seluruh database BIP ke data seed standar awal. Gunakan jika memerlukan data percontohan bersih.
             </p>
-            <button 
-              className="btn btn-danger" 
+            <button
+              className="btn btn-danger"
               style={{ width: '100%', fontSize: '0.8125rem' }}
               onClick={onResetDatabase}
             >

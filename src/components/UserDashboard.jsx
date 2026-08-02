@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
-import { 
-  UserCheck, 
-  UserPlus, 
-  UserMinus, 
-  Baby, 
-  Building2, 
-  Accessibility, 
-  Search, 
-  Edit3, 
+import {
+  UserCheck,
+  UserPlus,
+  UserMinus,
+  Baby,
+  Building2,
+  Accessibility,
+  Search,
+  Edit3,
   ArrowRight,
   Database,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
 import { BIP_LOCATIONS } from '../types/bipConstants';
-import { searchResidentGlobal } from '../services/storageService';
+import { searchResidentGlobal } from '../services/storageService';  
+import PopulationGrowthChartCard from './PopulationGrowthChartCard';
 
-export default function UserDashboard({ 
-  bipData, 
-  recapData, 
-  setActiveTab, 
+export default function UserDashboard({
+  bipData,
+  recapData,
+  setActiveTab,
   setSelectedBipName,
   onSelectResidentForUpdate
 }) {
@@ -74,7 +75,7 @@ export default function UserDashboard({
           </div>
         </div>
 
-        <button 
+        <button
           className="btn btn-primary"
           onClick={() => setActiveTab('input_data')}
           style={{ padding: '0.65rem 1.25rem', fontSize: '0.9rem' }}
@@ -93,8 +94,8 @@ export default function UserDashboard({
         </p>
 
         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="form-input"
             placeholder="Ketik NIK 16 digit atau Nama Penduduk..."
             value={searchQuery}
@@ -151,7 +152,7 @@ export default function UserDashboard({
                           </span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <button 
+                          <button
                             className="btn btn-success"
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
                             onClick={() => onSelectResidentForUpdate(res)}
@@ -181,8 +182,8 @@ export default function UserDashboard({
           gap: '1rem'
         }}>
           {/* 1. Pindah Datang */}
-          <div 
-            className="glass-card" 
+          <div
+            className="glass-card"
             style={{ padding: '1.25rem', cursor: 'pointer' }}
             onClick={() => setActiveTab('input_data')}
           >
@@ -198,8 +199,8 @@ export default function UserDashboard({
           </div>
 
           {/* 2. Pindah Masuk */}
-          <div 
-            className="glass-card" 
+          <div
+            className="glass-card"
             style={{ padding: '1.25rem', cursor: 'pointer' }}
             onClick={() => setActiveTab('input_data')}
           >
@@ -215,8 +216,8 @@ export default function UserDashboard({
           </div>
 
           {/* 3. Lahir */}
-          <div 
-            className="glass-card" 
+          <div
+            className="glass-card"
             style={{ padding: '1.25rem', cursor: 'pointer' }}
             onClick={() => setActiveTab('input_data')}
           >
@@ -232,8 +233,8 @@ export default function UserDashboard({
           </div>
 
           {/* 4. Meninggal */}
-          <div 
-            className="glass-card" 
+          <div
+            className="glass-card"
             style={{ padding: '1.25rem', cursor: 'pointer' }}
             onClick={() => setActiveTab('input_data')}
           >
@@ -249,8 +250,8 @@ export default function UserDashboard({
           </div>
 
           {/* 5. Disabilitas */}
-          <div 
-            className="glass-card" 
+          <div
+            className="glass-card"
             style={{ padding: '1.25rem', cursor: 'pointer' }}
             onClick={() => setActiveTab('input_data')}
           >
@@ -266,6 +267,9 @@ export default function UserDashboard({
           </div>
         </div>
       </div>
+
+      {/* Single Population Growth Chart Card with BIP Switcher */}
+      <PopulationGrowthChartCard bipData={bipData} recapData={recapData} />
 
       {/* BIP Databases Overview for Petugas */}
       <div className="glass-panel" style={{ padding: '1.5rem' }}>
@@ -285,7 +289,7 @@ export default function UserDashboard({
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {count} <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>jiwa</span>
                 </div>
-                <button 
+                <button
                   style={{ border: 'none', background: 'transparent', color: 'var(--accent-primary)', fontSize: '0.78rem', cursor: 'pointer', padding: 0, marginTop: '0.5rem' }}
                   onClick={() => {
                     setSelectedBipName(bip.name);
