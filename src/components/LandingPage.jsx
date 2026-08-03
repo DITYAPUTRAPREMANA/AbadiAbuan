@@ -34,31 +34,31 @@ export default function LandingPage({ onNavigateLogin, theme = 'dark', toggleThe
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 2rem'
+        padding: '0 1rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
           <img
             src="/Logo Desa Abuan 2.svg"
             alt="Logo Desa Abuan"
-            style={{ height: '46px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))' }}
+            style={{ height: '42px', width: 'auto', filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))', flexShrink: 0 }}
           />
-          <div>
-            <h1 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               BIP DESA ABUAN
             </h1>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
+            <p className="desktop-only" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Sistem Pengelolaan Buku Induk Penduduk
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           {/* Light / Dark Mode Toggle Button */}
           {toggleTheme && (
             <button
               onClick={toggleTheme}
               className="btn btn-secondary"
-              style={{ padding: '0.5rem 0.85rem', borderRadius: '10px' }}
+              style={{ padding: '0.45rem 0.65rem', borderRadius: '10px' }}
               title={theme === 'dark' ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
             >
               {theme === 'dark' ? (
@@ -75,9 +75,9 @@ export default function LandingPage({ onNavigateLogin, theme = 'dark', toggleThe
           <button
             className="btn btn-primary"
             onClick={onNavigateLogin}
-            style={{ padding: '0.55rem 1.4rem' }}
+            style={{ padding: '0.45rem 0.85rem', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}
           >
-            <LogIn size={18} /> Masuk Sistem
+            <LogIn size={16} /> <span>Masuk Sistem</span>
           </button>
         </div>
       </header>

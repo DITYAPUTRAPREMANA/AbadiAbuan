@@ -29,38 +29,38 @@ export default function Navbar({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 1rem',
+      padding: '0 0.875rem',
     }}>
       {/* Left Group: Mobile Menu Button & Brand Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="btn btn-secondary mobile-only"
-          style={{ padding: '0.5rem', borderRadius: '10px' }}
+          style={{ padding: '0.5rem', borderRadius: '10px', flexShrink: 0 }}
           title="Toggle Navigasi Menu"
         >
           {isMobileMenuOpen ? <X size={20} color="#60a5fa" /> : <Menu size={20} color="#60a5fa" />}
         </button>
 
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', minWidth: 0 }}
           onClick={() => setActiveTab('dashboard')}
         >
           <img
             src="/Logo Desa Abuan 2.svg"
             alt="Logo Desa Abuan"
             style={{
-              height: '40px',
+              height: '38px',
               width: 'auto',
               filter: 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4))',
               flexShrink: 0
             }}
           />
-          <div>
-            <h1 style={{ fontSize: '1.05rem', fontWeight: '900', letterSpacing: '0.02em', margin: 0, color: 'var(--text-primary)' }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: '0.95rem', fontWeight: '900', letterSpacing: '0.02em', margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               ABADI <span style={{ color: '#3b82f6' }}>ABUAN</span>
             </h1>
-            <p className="desktop-only" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: '600', margin: 0 }}>
+            <p className="desktop-only" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: '600', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Sistem Informasi Kependudukan 5 BIP
             </p>
           </div>
@@ -68,13 +68,13 @@ export default function Navbar({
       </div>
 
       {/* Right Controls: User Profile, Theme Switcher & Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
         {/* Light / Dark Mode Toggle Button */}
         {toggleTheme && (
           <button
             onClick={toggleTheme}
             className="btn btn-secondary"
-            style={{ padding: '0.45rem 0.75rem', borderRadius: '10px' }}
+            style={{ padding: '0.45rem 0.6rem', borderRadius: '10px' }}
             title={theme === 'dark' ? 'Beralih ke Light Mode' : 'Beralih ke Dark Mode'}
           >
             {theme === 'dark' ? (
@@ -90,7 +90,7 @@ export default function Navbar({
 
         {/* User Info Badge */}
         {currentUser && (
-          <div className="glass-card" style={{
+          <div className="glass-card desktop-only" style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
@@ -153,7 +153,7 @@ export default function Navbar({
         <button
           onClick={onLogout}
           className="btn btn-danger"
-          style={{ fontSize: '0.8125rem', padding: '0.45rem 0.75rem' }}
+          style={{ fontSize: '0.8125rem', padding: '0.45rem 0.65rem' }}
           title="Keluar dari Akun"
         >
           <LogOut size={16} />
