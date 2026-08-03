@@ -1,10 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Users, UserPlus, Baby, UserMinus, Building2 } from 'lucide-react';
+import { TrendingUp, Users, UserPlus, Baby, UserMinus, Building2, Calendar } from 'lucide-react';
 import { BIP_LOCATIONS } from '../types/bipConstants';
 
 export default function PopulationGrowthChartCard({ bipData = {}, recapData = {} }) {
   const [selectedBip, setSelectedBip] = useState('Semua BIP');
+  const [viewMode, setViewMode] = useState('MONTHLY'); // 'MONTHLY' | 'YEARLY'
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+  const currentYear = new Date().getFullYear();
+  const availableYears = [currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
 
   // Compute growth timeline & metrics for the selected BIP
   const chartData = useMemo(() => {
@@ -27,37 +33,68 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
       });
     });
 
-    // Generate last 6 years timeline: [2021, 2022, 2023, 2024, 2025, 2026]
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 5, currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
+    let points = [];
 
-    // Calculate yearly totals and breakdown
-    const points = years.map(year => {
-      // Residents registered up to this year
-      const countAtYear = targetResidents.filter(r => {
-        if (!r.tanggalMasuk) return true;
-        const entryYear = new Date(r.tanggalMasuk).getFullYear();
-        return entryYear <= year;
-      }).length;
+    if (viewMode === 'YEARLY') {
+      // Generate last 6 years timeline
+      const years = [currentYear - 5, currentYear - 4, currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
 
-      // Recaps in this year
-      const recapsInYear = targetRecaps.filter(r => {
-        if (!r.tanggalTransaksi) return false;
-        return new Date(r.tanggalTransaksi).getFullYear() === year;
+      points = years.map(year => {
+        const countAtYear = targetResidents.filter(r => {
+          if (!r.tanggalMasuk) return true;
+          const entryYear = new Date(r.tanggalMasuk).getFullYear();
+          return entryYear <= year;
+        }).length;
+
+        const recapsInYear = targetRecaps.filter(r => {
+          if (!r.tanggalTransaksi) return false;
+          return new Date(r.tanggalTransaksi).getFullYear() === year;
+        });
+
+        const lahir = recapsInYear.filter(r => r.kategori === 'Lahir').length;
+        const pindah = recapsInYear.filter(r => r.kategori === 'Pindah Datang' || r.kategori === 'Pindah Masuk').length;
+        const meninggal = recapsInYear.filter(r => r.kategori === 'Meninggal').length;
+
+        return {
+          label: String(year),
+          year: String(year),
+          population: countAtYear,
+          lahir,
+          pindah,
+          meninggal
+        };
       });
+    } else {
+      // Monthly Timeline for selectedYear
+      points = monthNames.map((mName, mIdx) => {
+        const lastDayOfMonth = new Date(selectedYear, mIdx + 1, 0);
 
-      const lahir = recapsInYear.filter(r => r.kategori === 'Lahir').length;
-      const pindah = recapsInYear.filter(r => r.kategori === 'Pindah Datang' || r.kategori === 'Pindah Masuk').length;
-      const meninggal = recapsInYear.filter(r => r.kategori === 'Meninggal').length;
+        const countAtMonth = targetResidents.filter(r => {
+          if (!r.tanggalMasuk) return true;
+          const d = new Date(r.tanggalMasuk);
+          return d <= lastDayOfMonth;
+        }).length;
 
-      return {
-        year: String(year),
-        population: countAtYear,
-        lahir,
-        pindah,
-        meninggal
-      };
-    });
+        const recapsInMonth = targetRecaps.filter(r => {
+          if (!r.tanggalTransaksi) return false;
+          const d = new Date(r.tanggalTransaksi);
+          return d.getFullYear() === Number(selectedYear) && d.getMonth() === mIdx;
+        });
+
+        const lahir = recapsInMonth.filter(r => r.kategori === 'Lahir').length;
+        const pindah = recapsInMonth.filter(r => r.kategori === 'Pindah Datang' || r.kategori === 'Pindah Masuk').length;
+        const meninggal = recapsInMonth.filter(r => r.kategori === 'Meninggal').length;
+
+        return {
+          label: mName,
+          year: String(selectedYear),
+          population: countAtMonth,
+          lahir,
+          pindah,
+          meninggal
+        };
+      });
+    }
 
     // Summary stats
     const totalPop = targetResidents.length;
@@ -78,7 +115,7 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
       totalMeninggal,
       growthRate: Number(growthRate) >= 0 ? `+${growthRate}%` : `${growthRate}%`
     };
-  }, [selectedBip, bipData, recapData]);
+  }, [selectedBip, viewMode, selectedYear, bipData, recapData]);
 
   // SVG Chart Geometry - Slim & Compact Version
   const width = 600;
@@ -104,7 +141,7 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
 
   return (
     <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Header with BIP Switcher */}
+      {/* Header with BIP Switcher & Period Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
@@ -115,8 +152,74 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
           </p>
         </div>
 
-        {/* BIP Switcher Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {/* Period Switcher & BIP Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {/* Mode Switcher */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '8px',
+            padding: '2px',
+            border: '1px solid var(--border-color)'
+          }}>
+            <button
+              onClick={() => setViewMode('MONTHLY')}
+              style={{
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.75rem',
+                fontWeight: viewMode === 'MONTHLY' ? 700 : 500,
+                borderRadius: '6px',
+                border: 'none',
+                background: viewMode === 'MONTHLY' ? '#10b981' : 'transparent',
+                color: viewMode === 'MONTHLY' ? '#ffffff' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Per Bulan
+            </button>
+            <button
+              onClick={() => setViewMode('YEARLY')}
+              style={{
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.75rem',
+                fontWeight: viewMode === 'YEARLY' ? 700 : 500,
+                borderRadius: '6px',
+                border: 'none',
+                background: viewMode === 'YEARLY' ? '#10b981' : 'transparent',
+                color: viewMode === 'YEARLY' ? '#ffffff' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Per Tahun
+            </button>
+          </div>
+
+          {/* Select Year when Monthly mode */}
+          {viewMode === 'MONTHLY' && (
+            <select
+              className="form-input"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              style={{
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                padding: '0.35rem 0.6rem',
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer'
+              }}
+            >
+              {availableYears.map(yr => (
+                <option key={yr} value={yr}>Tahun {yr}</option>
+              ))}
+            </select>
+          )}
+
+          {/* BIP Switcher Selector */}
           <select
             className="form-input"
             value={selectedBip}
@@ -124,7 +227,7 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
             style={{
               fontSize: '0.8rem',
               fontWeight: 700,
-              padding: '0.4rem 0.875rem',
+              padding: '0.35rem 0.75rem',
               borderRadius: '8px',
               border: '1px solid var(--accent-primary)',
               background: 'var(--bg-card)',
@@ -247,10 +350,10 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
                   y={height - 8}
                   textAnchor="middle"
                   fill="var(--text-secondary)"
-                  fontSize="9.5"
+                  fontSize="9"
                   fontWeight="500"
                 >
-                  {pt.year}
+                  {pt.label}
                 </text>
 
                 {/* Y Value label on top of point - Slim */}
@@ -259,7 +362,7 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
                   y={y - 7}
                   textAnchor="middle"
                   fill="var(--text-primary)"
-                  fontSize="9.5"
+                  fontSize="9"
                   fontWeight="600"
                 >
                   {pt.population}
@@ -284,7 +387,7 @@ export default function PopulationGrowthChartCard({ bipData = {}, recapData = {}
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             zIndex: 10
           }}>
-            <strong>Tahun {chartData.points[hoveredPoint].year} ({selectedBip})</strong>
+            <strong>{viewMode === 'MONTHLY' ? `Bulan ${chartData.points[hoveredPoint].label} ${selectedYear}` : `Tahun ${chartData.points[hoveredPoint].label}`} ({selectedBip})</strong>
             <div>Total Populasi: <strong>{chartData.points[hoveredPoint].population} jiwa</strong></div>
             <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.15rem' }}>
               Lahir: +{chartData.points[hoveredPoint].lahir} | Pindah: +{chartData.points[hoveredPoint].pindah} | Meninggal: -{chartData.points[hoveredPoint].meninggal}

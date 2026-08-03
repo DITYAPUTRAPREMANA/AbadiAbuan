@@ -48,7 +48,7 @@ function doPost(e) {
       
       // 2. Dapatkan atau buat Sheet Recap
       var recapSheetName = 'Recap ' + kategori;
-      var recapSheet = getOrCreateSheet(ss, recapSheetName, ['ID Recap', 'Kategori', 'NIK', 'Nama', 'Domisili', 'Tanggal Transaksi', 'Keterangan']);
+      var recapSheet = getOrCreateSheet(ss, recapSheetName, ['ID Recap', 'Kategori', 'NIK', 'Nama', 'Domisili', 'Tanggal Transaksi']);
 
       var type = isAddCategory(kategori) ? 'ADD' : 'REMOVE';
 
@@ -81,8 +81,7 @@ function doPost(e) {
         payload.nik,
         payload.nama,
         domisili,
-        payload.tanggalTransaksi || new Date().toISOString().split('T')[0],
-        payload.keterangan || '-'
+        payload.tanggalTransaksi || new Date().toISOString().split('T')[0]
       ]);
 
       return ContentService.createTextOutput(JSON.stringify({

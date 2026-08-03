@@ -2,10 +2,10 @@ import React from 'react';
 import { FileSpreadsheet, Menu, X, LogOut, Shield, UserCheck, Users, Sun, Moon } from 'lucide-react';
 import { getSheetsConfig } from '../services/sheetsService';
 
-export default function Navbar({ 
-  activeTab, 
-  setActiveTab, 
-  isMobileMenuOpen, 
+export default function Navbar({
+  activeTab,
+  setActiveTab,
+  isMobileMenuOpen,
   setIsMobileMenuOpen,
   currentUser,
   onLogout,
@@ -42,7 +42,7 @@ export default function Navbar({
           {isMobileMenuOpen ? <X size={20} color="#60a5fa" /> : <Menu size={20} color="#60a5fa" />}
         </button>
 
-        <div 
+        <div
           style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
           onClick={() => setActiveTab('dashboard')}
         >

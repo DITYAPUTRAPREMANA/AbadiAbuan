@@ -1,15 +1,19 @@
 import React from 'react';
-import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, Users, Shield } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Database, FileText, FileSpreadsheet, Users, Shield, ExternalLink } from 'lucide-react';
 
-export default function Sidebar({ 
-  activeTab, 
-  setActiveTab, 
-  isMobileMenuOpen, 
+export default function Sidebar({
+  activeTab,
+  setActiveTab,
+  isMobileMenuOpen,
   setIsMobileMenuOpen,
   currentUserRole = 'user',
   onOpenUserManagement
 }) {
   const isAdmin = currentUserRole === 'admin';
+
+  const handleOpenExternalWeb = () => {
+    window.open('https://addodesaabuan.id/', '_blank', 'noopener,noreferrer');
+  };
 
   const menuItems = [
     {
@@ -46,12 +50,27 @@ export default function Sidebar({
         action: onOpenUserManagement
       },
       {
+        id: 'external_web_link',
+        label: 'Akses Addo Desa Abuan',
+        icon: ExternalLink,
+        badge: 'Web Addo',
+        action: handleOpenExternalWeb
+      },
+      {
         id: 'spreadsheet_sync',
         label: 'Google Spreadsheet Sync',
         icon: FileSpreadsheet,
         badge: 'Admin'
       }
-    ] : [])
+    ] : [
+      {
+        id: 'external_web_link',
+        label: 'Akses Web Lainnya',
+        icon: ExternalLink,
+        badge: 'Web Link',
+        action: handleOpenExternalWeb
+      }
+    ])
   ];
 
   const handleSelectTab = (item) => {
@@ -108,7 +127,7 @@ export default function Sidebar({
           {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
-            
+
             return (
               <button
                 key={item.id}
@@ -120,13 +139,13 @@ export default function Sidebar({
                   width: '100%',
                   padding: '0.75rem 0.875rem',
                   borderRadius: '10px',
-                  border: isActive 
-                    ? '1px solid rgba(59, 130, 246, 0.5)' 
-                    : item.highlight 
-                      ? '1px dashed rgba(59, 130, 246, 0.3)' 
+                  border: isActive
+                    ? '1px solid rgba(59, 130, 246, 0.5)'
+                    : item.highlight
+                      ? '1px dashed rgba(59, 130, 246, 0.3)'
                       : '1px solid transparent',
-                  background: isActive 
-                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)' 
+                  background: isActive
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%)'
                     : 'transparent',
                   color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontWeight: isActive ? '700' : '500',

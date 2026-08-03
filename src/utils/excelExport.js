@@ -76,14 +76,35 @@ export function exportRecapToExcel(recapList, recapTitle = 'Recap_Transaksi') {
   }
 
   const exportData = recapList.map((row, idx) => ({
-    'NO': idx + 1,
-    'ID_RECAP': row.id || '',
-    'KATEGORI': row.kategori || '',
-    'NIK': row.nik || '',
-    'NAMA_PENDUDUK': row.nama || '',
-    'DOMISILI_BIP': row.domisili || '',
+    'NO': row.no || idx + 1,
     'TANGGAL_TRANSAKSI': row.tanggalTransaksi || '',
-    'KETERANGAN': row.keterangan || ''
+    'KATEGORI': row.kategori || '',
+    'NR': row.nr || '',
+    'N_KK': row.n_kk || '',
+    'N_AK': row.n_ak || '',
+    'NO_KK': row.no_kk || '',
+    'NIK': row.nik || '',
+    'NAMA_LENGKAP': row.nama || '',
+    'JENIS_KELAMIN': row.jenisKelamin || '',
+    'TMPT_LHR': row.tempatLahir || '',
+    'TGL_LHR': row.tanggalLahir || '',
+    'USIA': row.umur !== undefined && row.umur !== null ? row.umur : 0,
+    'NO_AKTA_LHR': row.noAktaLahir || row.n_ak || '',
+    'AGAMA': row.agama || '',
+    'PENDIDIKAN': row.pendidikan || '',
+    'PEKERJAAN': row.pekerjaan || '',
+    'STATUS_KAWIN': row.statusKawin || '',
+    'NO_AKTA_KWN': row.noAktaKawin || '',
+    'STATUS_HBKEL': row.statusHbkel || '',
+    'GOL_DARAH': row.golDarah || '',
+    'NAMA_LGKP_AYAH': row.namaAyah || '',
+    'NAMA_LGKP_IBU': row.namaIbu || '',
+    'NAMA_KEPALA_KELUARGA': row.namaKepalaKeluarga || '',
+    'ALAMAT': row.alamat || '',
+    'DUSUN_BIP': row.dusun || row.domisili || '',
+    'DESA_KEL': row.desaKel || 'Abuan',
+    'KECAMATAN': row.kecamatan || 'Susut',
+    'DISABILITAS': row.disabilitas || 'Tidak Ada'
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(exportData);

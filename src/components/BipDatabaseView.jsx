@@ -479,9 +479,9 @@ export default function BipDatabaseView({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.875rem' }}>
               <div><strong>NO Urut:</strong> {selectedRecordForDetail.no || '-'}</div>
-              <div><strong>N R (No Reg):</strong> {selectedRecordForDetail.nr || '-'}</div>
-              <div><strong>N KK (Reg KK):</strong> {selectedRecordForDetail.n_kk || '-'}</div>
-              <div><strong>N AK (Reg AK):</strong> {selectedRecordForDetail.n_ak || '-'}</div>
+              <div><strong>NR (Nomor Rumah):</strong> {selectedRecordForDetail.nr || '-'}</div>
+              <div><strong>N KK (Urutan KK):</strong> {selectedRecordForDetail.n_kk || '-'}</div>
+              <div><strong>N AK (No. Akta Kelahiran):</strong> {selectedRecordForDetail.n_ak || selectedRecordForDetail.noAktaLahir || '-'}</div>
               <div><strong>NO_KK:</strong> <code>{selectedRecordForDetail.no_kk}</code></div>
               <div><strong>NIK:</strong> <code>{selectedRecordForDetail.nik}</code></div>
               <div><strong>Jenis Kelamin:</strong> {selectedRecordForDetail.jenisKelamin}</div>

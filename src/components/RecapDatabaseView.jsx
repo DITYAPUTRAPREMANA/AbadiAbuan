@@ -41,8 +41,9 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
       const matchesSearch = (
         (item.nama || '').toLowerCase().includes(term) ||
         (item.nik || '').includes(term) ||
+        (item.no_kk || '').includes(term) ||
+        (item.pekerjaan || '').toLowerCase().includes(term) ||
         (item.domisili || '').toLowerCase().includes(term) ||
-        (item.keterangan || '').toLowerCase().includes(term) ||
         (item.kategori || '').toLowerCase().includes(term)
       );
       if (!matchesSearch) return false;
@@ -243,7 +244,7 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
           <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
-            placeholder="Cari kata kunci NIK, Nama Penduduk, Domisili, Keterangan Transaksi..."
+            placeholder="Cari kata kunci NIK, Nama Penduduk, No KK, Pekerjaan, Domisili..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="form-input"
@@ -305,30 +306,43 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
         </div>
       </div>
 
-      {/* Recap Table */}
+      {/* Recap Table with full BIP Columns */}
       <div className="custom-table-container glass-panel">
         <table className="custom-table">
           <thead>
             <tr>
-              <th>Tanggal</th>
-              <th>Kategori</th>
+              <th>NO</th>
+              <th>TANGGAL</th>
+              <th>KATEGORI</th>
+              <th>BIP / BANJAR</th>
+              <th>NO_KK</th>
               <th>NIK</th>
-              <th>Nama Penduduk</th>
-              <th>Wilayah Domisili (BIP)</th>
-              <th>Keterangan Transaksi</th>
-              <th style={{ textAlign: 'center' }}>Rincian</th>
+              <th>NAMA_LENGKAP</th>
+              <th>L/P</th>
+              <th>TMPT / TGL LAHIR</th>
+              <th>USIA</th>
+              <th>AGAMA</th>
+              <th>PENDIDIKAN</th>
+              <th>PEKERJAAN</th>
+              <th>STATUS_KAWIN</th>
+              <th>STATUS_HBKEL</th>
+              <th>GOL_DARAH</th>
+              <th>AYAH / IBU</th>
+              <th>DISABILITAS</th>
+              <th style={{ textAlign: 'center' }}>RINCIAN</th>
             </tr>
           </thead>
           <tbody>
             {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                <td colSpan={19} style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
                   Tidak ada rekapitulasi data yang sesuai dengan kriteria filter.
                 </td>
               </tr>
             ) : (
-              filteredList.map(row => (
-                <tr key={row.id}>
+              filteredList.map((row, idx) => (
+                <tr key={row.id || idx}>
+                  <td>{row.no || idx + 1}</td>
                   <td style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <Calendar size={14} color="var(--text-muted)" />
@@ -336,26 +350,32 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
                     </div>
                   </td>
                   <td>
-                    <span className={`badge ${INPUT_CATEGORIES.find(c => c.name === row.kategori)?.badgeColor || 'badge-blue'
-                      }`}>
+                    <span className={`badge ${INPUT_CATEGORIES.find(c => c.name === row.kategori)?.badgeColor || 'badge-blue'}`}>
                       {row.kategori}
                     </span>
                   </td>
                   <td>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600', color: 'var(--accent-primary)' }}>
-                      {row.nik}
-                    </span>
+                    <span className="badge badge-blue">{row.dusun || row.domisili}</span>
                   </td>
-                  <td style={{ fontWeight: '700', color: 'var(--text-primary)' }}>
-                    {row.nama}
-                  </td>
+                  <td><code>{row.no_kk || '-'}</code></td>
+                  <td><strong><code>{row.nik}</code></strong></td>
+                  <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{row.nama}</td>
+                  <td>{row.jenisKelamin === 'Laki-laki' ? 'L' : 'P'}</td>
+                  <td>{row.tempatLahir ? `${row.tempatLahir}, ${row.tanggalLahir}` : row.tanggalLahir}</td>
+                  <td><strong>{row.umur ? `${row.umur} Thn` : '-'}</strong></td>
+                  <td>{row.agama || 'Hindu'}</td>
+                  <td>{row.pendidikan || '-'}</td>
+                  <td>{row.pekerjaan || '-'}</td>
+                  <td>{row.statusKawin || '-'}</td>
+                  <td>{row.statusHbkel || '-'}</td>
+                  <td><span className="badge badge-blue">{row.golDarah || 'O'}</span></td>
+                  <td>{row.namaAyah || '-'} / {row.namaIbu || '-'}</td>
                   <td>
-                    <span style={{ fontWeight: '600', color: 'var(--accent-success)' }}>
-                      {row.domisili}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', maxWidth: '300px', whiteSpace: 'normal' }}>
-                    {row.keterangan}
+                    {row.disabilitas && row.disabilitas !== 'Tidak Ada' ? (
+                      <span className="badge badge-amber">{row.disabilitas}</span>
+                    ) : (
+                      <span style={{ opacity: 0.5 }}>-</span>
+                    )}
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button
@@ -386,10 +406,10 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
           zIndex: 50,
           padding: '1rem'
         }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '550px', padding: '1.75rem' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '650px', padding: '1.75rem', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-primary)' }}>
-                Rincian Log Rekapitulasi
+                Rincian Log Rekapitulasi Data
               </h3>
               <button onClick={() => setDetailModalItem(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 <X size={20} />
@@ -406,26 +426,69 @@ export default function RecapDatabaseView({ recapData, selectedRecapId, setSelec
                 <p style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{detailModalItem.kategori}</p>
               </div>
               <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NIK Penduduk</span>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>{detailModalItem.nik}</p>
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Nama Penduduk</span>
-                <p style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{detailModalItem.nama}</p>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tanggal Transaksi</span>
+                <p style={{ color: 'var(--text-secondary)' }}>{detailModalItem.tanggalTransaksi}</p>
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>BIP Domisili Target</span>
                 <p style={{ color: 'var(--accent-success)', fontWeight: '700' }}>{detailModalItem.domisili}</p>
               </div>
               <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tanggal Transaksi</span>
-                <p style={{ color: 'var(--text-secondary)' }}>{detailModalItem.tanggalTransaksi}</p>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NR (Nomor Rumah)</span>
+                <p style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{detailModalItem.nr || '-'}</p>
               </div>
-            </div>
-
-            <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Keterangan / Catatan Kejadian</span>
-              <p style={{ color: 'var(--text-primary)', fontWeight: '600', marginTop: '0.2rem' }}>{detailModalItem.keterangan}</p>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>N KK (Urutan KK)</span>
+                <p style={{ fontWeight: '600', color: 'var(--text-primary)' }}>{detailModalItem.n_kk || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NO KK</span>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{detailModalItem.no_kk || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NIK Penduduk</span>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: '700' }}>{detailModalItem.nik}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Nama Lengkap</span>
+                <p style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{detailModalItem.nama}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Jenis Kelamin</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.jenisKelamin}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tempat / Tanggal Lahir</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.tempatLahir}, {detailModalItem.tanggalLahir}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>N AK (No. Akta Kelahiran)</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.n_ak || detailModalItem.noAktaLahir || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pendidikan</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.pendidikan || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pekerjaan</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.pekerjaan || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status Kawin</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.statusKawin || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status Hub. Keluarga</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.statusHbkel || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Golongan Darah</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.golDarah || '-'}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Disabilitas</span>
+                <p style={{ color: 'var(--text-primary)' }}>{detailModalItem.disabilitas || 'Tidak Ada'}</p>
+              </div>
             </div>
 
             <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>

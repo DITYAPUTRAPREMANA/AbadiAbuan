@@ -91,7 +91,7 @@ export default function App() {
   // 1. Landing Page View
   if (pageView === 'landing') {
     return (
-      <LandingPage 
+      <LandingPage
         onNavigateLogin={() => setPageView('login')}
         theme={theme}
         toggleTheme={toggleTheme}
@@ -102,7 +102,7 @@ export default function App() {
   // 2. Login Page View
   if (pageView === 'login') {
     return (
-      <LoginPage 
+      <LoginPage
         onLoginSuccess={handleLoginSuccess}
         onBackToLanding={() => setPageView('landing')}
       />

@@ -55,8 +55,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
     tanggalLahir: '1995-01-01',
     noAktaLahir: '',
     agama: 'Hindu',
-    pendidikan: 'SMA / SMK / Sederajat',
-    pekerjaan: 'Petani / Pekebun',
+    pendidikan: 'SLTA / SEDERAJAT',
+    pekerjaan: 'PETANI/PEKEBUN',
     statusKawin: 'Belum Kawin',
     noAktaKawin: '',
     statusHbkel: 'Kepala Keluarga',
@@ -68,8 +68,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
     dusun: 'Sala',
     desaKel: 'Abuan',
     kecamatan: 'Susut',
-    disabilitas: 'Disabilitas Fisik',
-    keterangan: ''
+    disabilitas: 'Disabilitas Fisik'
   });
 
   const [notification, setNotification] = useState(null);
@@ -89,6 +88,11 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       const next = { ...prev, [field]: value };
       if (field === 'domisili') {
         next.dusun = value.replace('BIP ', '');
+      }
+      if (field === 'n_ak') {
+        next.noAktaLahir = value;
+      } else if (field === 'noAktaLahir') {
+        next.n_ak = value;
       }
       return next;
     });
@@ -110,17 +114,17 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       no: resident.no || 1,
       nr: resident.nr || '',
       n_kk: resident.n_kk || '',
-      n_ak: resident.n_ak || '',
+      n_ak: resident.n_ak || resident.noAktaLahir || '',
       no_kk: resident.no_kk || '',
       nik: resident.nik || '',
       nama: resident.nama || '',
       jenisKelamin: resident.jenisKelamin || 'Laki-laki',
       tempatLahir: resident.tempatLahir || 'Bangli',
       tanggalLahir: resident.tanggalLahir || '1995-01-01',
-      noAktaLahir: resident.noAktaLahir || '',
+      noAktaLahir: resident.noAktaLahir || resident.n_ak || '',
       agama: resident.agama || 'Hindu',
-      pendidikan: resident.pendidikan || 'SMA / SMK / Sederajat',
-      pekerjaan: resident.pekerjaan || 'Petani / Pekebun',
+      pendidikan: resident.pendidikan || 'SLTA / SEDERAJAT',
+      pekerjaan: resident.pekerjaan || 'PETANI/PEKEBUN',
       statusKawin: resident.statusKawin || 'Belum Kawin',
       noAktaKawin: resident.noAktaKawin || '',
       statusHbkel: resident.statusHbkel || 'Kepala Keluarga',
@@ -132,8 +136,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       dusun: resident.dusun || (resident.domisili ? resident.domisili.replace('BIP ', '') : 'Sala'),
       desaKel: resident.desaKel || 'Abuan',
       kecamatan: resident.kecamatan || 'Susut',
-      disabilitas: resident.disabilitas || 'Disabilitas Fisik',
-      keterangan: resident.keterangan || ''
+      disabilitas: resident.disabilitas || 'Disabilitas Fisik'
     });
     setSearchResults([]);
     setNotification({
@@ -160,8 +163,8 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       tanggalLahir: '1995-01-01',
       noAktaLahir: '',
       agama: 'Hindu',
-      pendidikan: 'SMA / SMK / Sederajat',
-      pekerjaan: 'Petani / Pekebun',
+      pendidikan: 'SLTA / SEDERAJAT',
+      pekerjaan: 'PETANI/PEKEBUN',
       statusKawin: 'Belum Kawin',
       noAktaKawin: '',
       statusHbkel: 'Kepala Keluarga',
@@ -173,8 +176,7 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       dusun: 'Sala',
       desaKel: 'Abuan',
       kecamatan: 'Susut',
-      disabilitas: 'Disabilitas Fisik',
-      keterangan: ''
+      disabilitas: 'Disabilitas Fisik'
     });
   };
 
@@ -422,11 +424,11 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* NR */}
             <div className="form-group">
-              <label className="form-label">N R (No Register)</label>
+              <label className="form-label">NR (Nomor Rumah)</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="cth: REG-001"
+                placeholder="cth: 001"
                 value={formData.nr}
                 onChange={(e) => handleInputChange('nr', e.target.value)}
               />
@@ -434,11 +436,11 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* N KK */}
             <div className="form-group">
-              <label className="form-label">N KK (No Reg KK)</label>
+              <label className="form-label">N KK (Urutan KK Dalam Rumah)</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="cth: REG-KK-01"
+                placeholder="cth: 1"
                 value={formData.n_kk}
                 onChange={(e) => handleInputChange('n_kk', e.target.value)}
               />
@@ -446,11 +448,11 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
             {/* N AK */}
             <div className="form-group">
-              <label className="form-label">N AK (No Reg AK)</label>
+              <label className="form-label">N AK (No. Akta Kelahiran)</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="cth: REG-AK-01"
+                placeholder="Nomor Akta Kelahiran"
                 value={formData.n_ak}
                 onChange={(e) => handleInputChange('n_ak', e.target.value)}
               />
