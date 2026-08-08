@@ -223,12 +223,12 @@ export default function InputDataForm({ onTransactionSuccess }) {
             </div>
           </div>
 
-          {/* Opsi Pencarian & Auto-fill Penduduk yang Ada di BIP (Khusus untuk Kategori Meninggal) */}
-          {formData.kategori === 'Meninggal' && (
-            <div className="glass-card" style={{ padding: '1.15rem', marginTop: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.05)' }}>
+          {/* Opsi Pencarian & Auto-fill Penduduk yang Ada di BIP (Khusus untuk Kategori Meninggal & Pindah Keluar) */}
+          {(formData.kategori === 'Meninggal' || formData.kategori === 'Pindah Keluar') && (
+            <div className="glass-card" style={{ padding: '1.15rem', marginTop: '1.25rem', border: `1px solid ${formData.kategori === 'Meninggal' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`, borderRadius: '12px', background: formData.kategori === 'Meninggal' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(245, 158, 11, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                <label className="form-label" style={{ margin: 0, color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
-                  <Search size={16} /> Opsional: Pilih Warga Meninggal dari BIP (Auto-Fill Form) atau Isi Manual
+                <label className="form-label" style={{ margin: 0, color: formData.kategori === 'Meninggal' ? '#f87171' : '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
+                  <Search size={16} /> Opsional: Pilih Warga ({formData.kategori}) dari BIP untuk Auto-Fill Form atau Isi Manual
                 </label>
                 {selectedResidentSource && (
                   <span className="badge badge-green" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}>

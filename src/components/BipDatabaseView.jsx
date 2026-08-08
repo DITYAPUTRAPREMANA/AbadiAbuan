@@ -10,6 +10,7 @@ import {
   RotateCcw,
   FileSpreadsheet,
   UserMinus,
+  LogOut,
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
@@ -35,10 +36,11 @@ export default function BipDatabaseView({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRecordForDetail, setSelectedRecordForDetail] = useState(null);
 
-  // Modal State for Recording Death
-  const [selectedResidentForDeath, setSelectedResidentForDeath] = useState(null);
-  const [deathDate, setDeathDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isProcessingDeath, setIsProcessingDeath] = useState(false);
+  // Modal State for Processing Removal (Meninggal / Pindah Keluar)
+  const [selectedResidentForRemoval, setSelectedResidentForRemoval] = useState(null);
+  const [removalCategory, setRemovalCategory] = useState('Meninggal'); // 'Meninggal' | 'Pindah Keluar'
+  const [removalDate, setRemovalDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isProcessingRemoval, setIsProcessingRemoval] = useState(false);
 
   const [ageGroupFilter, setAgeGroupFilter] = useState('');
   const [educationFilter, setEducationFilter] = useState('');
@@ -46,25 +48,25 @@ export default function BipDatabaseView({
   const [genderFilter, setGenderFilter] = useState('');
   const [disabilityFilter, setDisabilityFilter] = useState('');
 
-  const handleProcessDeathSubmit = async () => {
-    if (!selectedResidentForDeath) return;
-    setIsProcessingDeath(true);
+  const handleProcessRemovalSubmit = async () => {
+    if (!selectedResidentForRemoval) return;
+    setIsProcessingRemoval(true);
     try {
       const payload = {
-        ...selectedResidentForDeath,
-        kategori: 'Meninggal',
-        domisili: selectedResidentForDeath.domisili || selectedBipName,
-        tanggalTransaksi: deathDate
+        ...selectedResidentForRemoval,
+        kategori: removalCategory,
+        domisili: selectedResidentForRemoval.domisili || selectedBipName,
+        tanggalTransaksi: removalDate
       };
       const res = processPopulationTransaction(payload);
       await syncTransactionToGoogleSheet(res.residentRecord || payload);
-      alert(`Data "${selectedResidentForDeath.nama}" berhasil diproses (Meninggal). Dihapus dari TAB BIP dan dicatat di TAB REKAP Meninggal.`);
-      setSelectedResidentForDeath(null);
+      alert(`Data "${selectedResidentForRemoval.nama}" berhasil diproses (${removalCategory}). Dihapus dari TAB BIP dan dicatat di TAB REKAP ${removalCategory}.`);
+      setSelectedResidentForRemoval(null);
       if (onDataChanged) onDataChanged();
     } catch (err) {
-      alert('Gagal memproses data meninggal: ' + err.message);
+      alert(`Gagal memproses data ${removalCategory}: ` + err.message);
     } finally {
-      setIsProcessingDeath(false);
+      setIsProcessingRemoval(false);
     }
   };
 
@@ -454,12 +456,26 @@ export default function BipDatabaseView({
                           className="btn"
                           style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#f87171' }}
                           onClick={() => {
-                            setSelectedResidentForDeath(item);
-                            setDeathDate(new Date().toISOString().split('T')[0]);
+                            setSelectedResidentForRemoval(item);
+                            setRemovalCategory('Meninggal');
+                            setRemovalDate(new Date().toISOString().split('T')[0]);
                           }}
                           title="Catat Warga Meninggal (Hapus dari BIP & Pindah ke REKAP)"
                         >
                           <UserMinus size={14} /> Meninggal
+                        </button>
+
+                        <button
+                          className="btn"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#fbbf24' }}
+                          onClick={() => {
+                            setSelectedResidentForRemoval(item);
+                            setRemovalCategory('Pindah Keluar');
+                            setRemovalDate(new Date().toISOString().split('T')[0]);
+                          }}
+                          title="Catat Warga Pindah Keluar (Hapus dari BIP & Pindah ke REKAP)"
+                        >
+                          <LogOut size={14} /> Pindah Keluar
                         </button>
 
                         {currentUserRole === 'admin' && (
@@ -539,19 +555,35 @@ export default function BipDatabaseView({
               <div><strong>Disabilitas:</strong> {selectedRecordForDetail.disabilitas || 'Tidak Ada'}</div>
             </div>
 
-            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
               <button
                 className="btn"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#f87171' }}
                 onClick={() => {
                   const rec = selectedRecordForDetail;
                   setSelectedRecordForDetail(null);
-                  setSelectedResidentForDeath(rec);
-                  setDeathDate(new Date().toISOString().split('T')[0]);
+                  setSelectedResidentForRemoval(rec);
+                  setRemovalCategory('Meninggal');
+                  setRemovalDate(new Date().toISOString().split('T')[0]);
                 }}
               >
                 <UserMinus size={16} /> Catat Sebagai Meninggal
               </button>
+
+              <button
+                className="btn"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(245, 158, 11, 0.5)', color: '#fbbf24' }}
+                onClick={() => {
+                  const rec = selectedRecordForDetail;
+                  setSelectedRecordForDetail(null);
+                  setSelectedResidentForRemoval(rec);
+                  setRemovalCategory('Pindah Keluar');
+                  setRemovalDate(new Date().toISOString().split('T')[0]);
+                }}
+              >
+                <LogOut size={16} /> Catat Pindah Keluar
+              </button>
+
               <button
                 className="btn btn-secondary"
                 onClick={() => setSelectedRecordForDetail(null)}
@@ -563,8 +595,8 @@ export default function BipDatabaseView({
         </div>
       )}
 
-      {/* Confirmation Modal for Processing Death */}
-      {selectedResidentForDeath && (
+      {/* Confirmation Modal for Processing Removal (Meninggal / Pindah Keluar) */}
+      {selectedResidentForRemoval && (
         <div style={{
           position: 'fixed',
           inset: 0,
@@ -576,28 +608,28 @@ export default function BipDatabaseView({
           justifyContent: 'center',
           padding: '1.5rem'
         }}>
-          <div className="glass-panel" style={{ maxWidth: '520px', width: '100%', padding: '1.75rem', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '16px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.75rem 0', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <UserMinus size={22} /> Konfirmasi Pencatatan Kematian Warga
+          <div className="glass-panel" style={{ maxWidth: '520px', width: '100%', padding: '1.75rem', border: `1px solid ${removalCategory === 'Meninggal' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(245, 158, 11, 0.5)'}`, borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.75rem 0', color: removalCategory === 'Meninggal' ? '#f87171' : '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {removalCategory === 'Meninggal' ? <UserMinus size={22} /> : <LogOut size={22} />} Konfirmasi Pencatatan {removalCategory} Warga
             </h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-              Data warga di bawah ini akan <strong style={{ color: '#f87171' }}>otomatis dihapus dari TAB BIP aktif</strong> ({selectedResidentForDeath.domisili || selectedBipName}) dan <strong style={{ color: '#34d399' }}>dicatat ke TAB REKAP Meninggal</strong>.
+              Data warga di bawah ini akan <strong style={{ color: '#f87171' }}>otomatis dihapus dari TAB BIP aktif</strong> ({selectedResidentForRemoval.domisili || selectedBipName}) dan <strong style={{ color: '#34d399' }}>dicatat ke TAB REKAP {removalCategory}</strong>.
             </p>
 
-            <div className="glass-card" style={{ padding: '1rem', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <div><strong>Nama Lengkap:</strong> {selectedResidentForDeath.nama}</div>
-              <div><strong>NIK:</strong> <code>{selectedResidentForDeath.nik}</code></div>
-              <div><strong>NO KK:</strong> <code>{selectedResidentForDeath.no_kk}</code></div>
-              <div><strong>Domisili BIP:</strong> <span className="badge badge-blue">{selectedResidentForDeath.domisili || selectedBipName}</span></div>
+            <div className="glass-card" style={{ padding: '1rem', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div><strong>Nama Lengkap:</strong> {selectedResidentForRemoval.nama}</div>
+              <div><strong>NIK:</strong> <code>{selectedResidentForRemoval.nik}</code></div>
+              <div><strong>NO KK:</strong> <code>{selectedResidentForRemoval.no_kk}</code></div>
+              <div><strong>Domisili BIP:</strong> <span className="badge badge-blue">{selectedResidentForRemoval.domisili || selectedBipName}</span></div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label className="form-label">TANGGAL TRANSAKSI / KEMATIAN</label>
+              <label className="form-label">TANGGAL TRANSAKSI ({removalCategory.toUpperCase()})</label>
               <input
                 type="date"
                 className="form-input"
-                value={deathDate}
-                onChange={(e) => setDeathDate(e.target.value)}
+                value={removalDate}
+                onChange={(e) => setRemovalDate(e.target.value)}
                 required
               />
             </div>
@@ -605,18 +637,25 @@ export default function BipDatabaseView({
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 className="btn btn-secondary"
-                onClick={() => setSelectedResidentForDeath(null)}
-                disabled={isProcessingDeath}
+                onClick={() => setSelectedResidentForRemoval(null)}
+                disabled={isProcessingRemoval}
               >
                 Batal
               </button>
               <button
-                className="btn btn-danger"
-                onClick={handleProcessDeathSubmit}
-                disabled={isProcessingDeath}
-                style={{ padding: '0.6rem 1.25rem', fontWeight: 700 }}
+                className="btn"
+                onClick={handleProcessRemovalSubmit}
+                disabled={isProcessingRemoval}
+                style={{
+                  padding: '0.6rem 1.25rem',
+                  fontWeight: 700,
+                  background: removalCategory === 'Meninggal' ? '#dc2626' : '#d97706',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px'
+                }}
               >
-                {isProcessingDeath ? 'Memproses...' : 'Simpan & Proses Meninggal'}
+                {isProcessingRemoval ? 'Memproses...' : `Simpan & Proses ${removalCategory}`}
               </button>
             </div>
           </div>

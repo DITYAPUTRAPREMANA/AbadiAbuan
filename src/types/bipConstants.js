@@ -40,6 +40,14 @@ export const INPUT_CATEGORIES = [
     badgeColor: 'badge-red'
   },
   {
+    id: 'pindah_keluar',
+    name: 'Pindah Keluar',
+    type: 'REMOVE',
+    description: 'Pencatatan penduduk yang pindah keluar dari desa/BIP.',
+    recapKey: 'recap_pindah_keluar',
+    badgeColor: 'badge-amber'
+  },
+  {
     id: 'disabilitas',
     name: 'Disabilitas',
     type: 'ADD',
@@ -54,6 +62,7 @@ export const RECAP_DATABASES = [
   { id: 'recap_pindah_masuk', name: 'Recap Pindah Masuk', category: 'Pindah Masuk' },
   { id: 'recap_lahir', name: 'Recap Lahir', category: 'Lahir' },
   { id: 'recap_meninggal', name: 'Recap Meninggal', category: 'Meninggal' },
+  { id: 'recap_pindah_keluar', name: 'Recap Pindah Keluar', category: 'Pindah Keluar' },
   { id: 'recap_disabilitas', name: 'Recap Disabilitas', category: 'Disabilitas' }
 ];
 

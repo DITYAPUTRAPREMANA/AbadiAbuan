@@ -37,7 +37,7 @@ export default function Sidebar({
     },
     {
       id: 'recap_databases',
-      label: '5 Database Recap',
+      label: '6 Database Recap',
       icon: FileText,
       badge: 'Rekapitulasi'
     },
