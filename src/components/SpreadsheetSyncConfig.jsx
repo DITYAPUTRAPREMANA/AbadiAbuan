@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, Copy, Check, ExternalLink, RefreshCw, Zap, ShieldCheck, HelpCircle } from 'lucide-react';
-import { getSheetsConfig, saveSheetsConfig, fetchAllFromGoogleSheet } from '../services/sheetsService';
+import { FileSpreadsheet, Copy, Check, ExternalLink, RefreshCw, Zap, ShieldCheck, HelpCircle, UploadCloud } from 'lucide-react';
+import { getSheetsConfig, saveSheetsConfig, fetchAllFromGoogleSheet, syncAllDataToGoogleSheet } from '../services/sheetsService';
+import { getBipDatabases, getRecapDatabases } from '../services/storageService';
 import { GOOGLE_APPS_SCRIPT_CODE } from '../utils/googleAppsScriptTemplate';
 
 export default function SpreadsheetSyncConfig({ onSyncCompleted }) {
   const [config, setConfig] = useState(getSheetsConfig());
   const [copied, setCopied] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [syncingAll, setSyncingAll] = useState(false);
   const [testResult, setTestResult] = useState(null);
 
   const handleSaveConfig = () => {
@@ -46,6 +48,34 @@ export default function SpreadsheetSyncConfig({ onSyncCompleted }) {
     }
   };
 
+  const handlePushAllLocalData = async () => {
+    if (!config.webAppUrl) {
+      setTestResult({ success: false, message: 'Masukkan URL Google Apps Script Web App terlebih dahulu.' });
+      return;
+    }
+
+    setSyncingAll(true);
+    setTestResult(null);
+
+    try {
+      const bips = getBipDatabases();
+      const recaps = getRecapDatabases();
+      const res = await syncAllDataToGoogleSheet(bips, recaps);
+      setSyncingAll(false);
+      setTestResult({
+        success: true,
+        message: `Berhasil terhubung! ${res.successCount} data kependudukan telah di-upload ke Google Spreadsheet.`
+      });
+      if (onSyncCompleted) onSyncCompleted();
+    } catch (err) {
+      setSyncingAll(false);
+      setTestResult({
+        success: false,
+        message: `Gagal mengunggah data: ${err.message}`
+      });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '950px', margin: '0 auto' }}>
       {/* Title */}
@@ -80,14 +110,25 @@ export default function SpreadsheetSyncConfig({ onSyncCompleted }) {
             </div>
           </div>
 
-          <button
-            onClick={handleTestConnection}
-            disabled={testing}
-            className="btn btn-primary"
-          >
-            {testing ? <RefreshCw size={16} className="live-pulse" /> : <Zap size={16} />}
-            <span>{testing ? 'Menguji Koneksi...' : 'Uji Koneksi Realtime'}</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleTestConnection}
+              disabled={testing || syncingAll}
+              className="btn btn-primary"
+            >
+              {testing ? <RefreshCw size={16} className="live-pulse" /> : <Zap size={16} />}
+              <span>{testing ? 'Menguji Koneksi...' : 'Uji Koneksi Realtime'}</span>
+            </button>
+
+            <button
+              onClick={handlePushAllLocalData}
+              disabled={testing || syncingAll}
+              className="btn btn-secondary"
+            >
+              {syncingAll ? <RefreshCw size={16} className="live-pulse" /> : <UploadCloud size={16} />}
+              <span>{syncingAll ? 'Mengirim Data...' : 'Push Semua Data Lokal ke Google Sheet'}</span>
+            </button>
+          </div>
         </div>
 
         {testResult && (

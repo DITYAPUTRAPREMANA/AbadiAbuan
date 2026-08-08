@@ -575,10 +575,23 @@ export const processPopulationTransaction = (formData) => {
     tanggalTransaksi
   };
 
-  // 1. Meninggal -> Remove/Archive from BIP main active list
-  if (kategori === 'Meninggal') {
-    const updatedBipData = bipData.filter(r => r.nik !== nik.trim());
-    localStorage.setItem(bipKey, JSON.stringify(updatedBipData));
+  // 1. Kategori Meninggal & Pindah Keluar -> Otomatis Hapus dari BIP Aktif & Masuk ke REKAP
+  if (kategori === 'Meninggal' || kategori === 'Pindah Keluar') {
+    const targetNik = (nik || '').trim().toLowerCase();
+    const targetNama = (nama || '').trim().toLowerCase();
+
+    // Hapus dari SELURUH 5 database BIP (Sala, Abuan Kangin, Abuan Kauh, Serokadan, Serokadan Kaja)
+    BIP_LOCATIONS.forEach(bip => {
+      const key = STORAGE_PREFIX + 'bip_' + bip.name;
+      const list = getBipDataByName(bip.name);
+      const filtered = list.filter(r => {
+        const rNik = String(r.nik || '').trim().toLowerCase();
+        const rNama = String(r.nama || '').trim().toLowerCase();
+        const isMatch = (targetNik && rNik === targetNik) || (targetNama && rNama === targetNama);
+        return !isMatch;
+      });
+      localStorage.setItem(key, JSON.stringify(filtered));
+    });
 
     recapList.unshift(newRecapRecord);
     localStorage.setItem(recapKey, JSON.stringify(recapList));
@@ -586,7 +599,7 @@ export const processPopulationTransaction = (formData) => {
     return {
       success: true,
       action: 'REMOVED',
-      message: `Data "${nama}" (NIK: ${nik}) telah diproses Meninggal dan dipindahkan dari ${domisili} ke Rekap Meninggal.`,
+      message: `Data "${nama}" (NIK: ${nik}) berhasil diproses (${kategori}). Otomatis dihapus dari BIP aktif dan dicatat ke Rekapitulasi ${kategori}.`,
       residentRecord: newResidentRecord,
       recapRecord: newRecapRecord
     };
@@ -615,20 +628,30 @@ export const processPopulationTransaction = (formData) => {
 };
 
 // Direct Update of Existing Resident Record (Hilangkan Data Lama & Masukkan Data Baru ke Database BIP)
-export const updateResidentRecord = (oldRecordId, updatedData) => {
+export const updateResidentRecord = (oldRecordId, updatedData, originalNik = null) => {
   initializeStorage();
 
   const allBips = getBipDatabases();
   let foundBipName = null;
   let targetIndex = -1;
 
+  // Prioritas pencarian: ID record → NIK lama (originalNik) → NIK baru
+  const searchNik = originalNik || updatedData.nik;
+
   Object.entries(allBips).forEach(([bipName, list]) => {
-    const idx = list.findIndex(r => r.id === oldRecordId || (updatedData.nik && r.nik === updatedData.nik));
+    if (foundBipName !== null) return; // sudah ketemu, skip
+    const idx = list.findIndex(r =>
+      r.id === oldRecordId ||
+      (originalNik && r.nik === originalNik) ||
+      (!originalNik && updatedData.nik && r.nik === updatedData.nik)
+    );
     if (idx !== -1) {
       foundBipName = bipName;
       targetIndex = idx;
     }
   });
+
+  console.log('[storageService] updateResidentRecord → foundBipName:', foundBipName, '| targetIndex:', targetIndex, '| searchNik:', searchNik);
 
   const newDomisili = updatedData.domisili || foundBipName || 'BIP Sala';
   const age = calculateAgeFromBirthdate(updatedData.tanggalLahir);
@@ -640,16 +663,18 @@ export const updateResidentRecord = (oldRecordId, updatedData) => {
     updatedAt: new Date().toISOString()
   };
 
-  // Case A: Domisili didn't change, update in place
   if (foundBipName && foundBipName === newDomisili && targetIndex !== -1) {
-    const list = allBips[foundBipName];
+    // Case A: Domisili tidak berubah — update in place dan SIMPAN ke localStorage
+    const list = [...allBips[foundBipName]]; // buat salinan baru
     list[targetIndex] = cleanRecord;
     localStorage.setItem(STORAGE_PREFIX + 'bip_' + foundBipName, JSON.stringify(list));
+    console.log('[storageService] Case A: updated in place di', foundBipName);
   } else {
-    // Case B: Domisili changed or new location, remove old & add to new
+    // Case B: Domisili berubah atau record baru — hapus dari lama, tambah ke baru
     if (foundBipName && targetIndex !== -1) {
-      const oldList = allBips[foundBipName].filter(r => r.id !== oldRecordId);
+      const oldList = allBips[foundBipName].filter(r => r.id !== oldRecordId && r.nik !== searchNik);
       localStorage.setItem(STORAGE_PREFIX + 'bip_' + foundBipName, JSON.stringify(oldList));
+      console.log('[storageService] Case B: dihapus dari', foundBipName, ', dipindah ke', newDomisili);
     }
 
     const newList = getBipDataByName(newDomisili);
@@ -668,6 +693,8 @@ export const updateResidentRecord = (oldRecordId, updatedData) => {
     record: cleanRecord
   };
 };
+
+
 
 // Delete Resident Record (Admin Only)
 export const deleteResidentRecord = (bipName, recordId) => {

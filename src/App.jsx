@@ -41,9 +41,6 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
 
-  // Data update state
-  const [selectedResidentToUpdate, setSelectedResidentToUpdate] = useState(null);
-
   // Reactive Database State
   const [bipData, setBipData] = useState({});
   const [recapData, setRecapData] = useState({});
@@ -73,11 +70,6 @@ export default function App() {
     logoutUser();
     setCurrentUser(null);
     setPageView('landing');
-  };
-
-  const handleSelectResidentForUpdate = (resident) => {
-    setSelectedResidentToUpdate(resident);
-    setActiveTab('input_data');
   };
 
   const handleResetDatabase = () => {
@@ -156,18 +148,13 @@ export default function App() {
                 recapData={recapData}
                 setActiveTab={setActiveTab}
                 setSelectedBipName={setSelectedBipName}
-                onSelectResidentForUpdate={handleSelectResidentForUpdate}
               />
             )
           )}
 
           {activeTab === 'input_data' && (
             <InputDataForm
-              initialUpdateData={selectedResidentToUpdate}
-              onTransactionSuccess={() => {
-                refreshData();
-                setSelectedResidentToUpdate(null);
-              }}
+              onTransactionSuccess={refreshData}
             />
           )}
 
@@ -177,7 +164,6 @@ export default function App() {
               selectedBipName={selectedBipName}
               setSelectedBipName={setSelectedBipName}
               onDataChanged={refreshData}
-              onEditResident={handleSelectResidentForUpdate}
               currentUserRole={currentUser?.role}
             />
           )}

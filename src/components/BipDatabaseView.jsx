@@ -1,45 +1,77 @@
 import React, { useState } from 'react';
-import { 
-  Database, 
-  Search, 
-  Download, 
-  Edit3, 
-  Trash2, 
-  Filter, 
-  Eye, 
+import {
+  Database,
+  Search,
+  Download,
+  Edit3,
+  Trash2,
+  Filter,
+  Eye,
   RotateCcw,
-  FileSpreadsheet
+  FileSpreadsheet,
+  UserMinus,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
-import { 
-  BIP_LOCATIONS, 
-  AGE_GROUPS, 
-  EDUCATION_LEVELS, 
-  JOB_CATEGORIES, 
-  DISABILITY_TYPES 
+import {
+  BIP_LOCATIONS,
+  AGE_GROUPS,
+  EDUCATION_LEVELS,
+  JOB_CATEGORIES,
+  DISABILITY_TYPES
 } from '../types/bipConstants';
-import { deleteResidentRecord } from '../services/storageService';
+import { deleteResidentRecord, processPopulationTransaction } from '../services/storageService';
+import { syncTransactionToGoogleSheet } from '../services/sheetsService';
 import { exportResidentsToExcel } from '../utils/excelExport';
 
-export default function BipDatabaseView({ 
-  bipData, 
-  selectedBipName, 
-  setSelectedBipName, 
+export default function BipDatabaseView({
+  bipData,
+  selectedBipName,
+  setSelectedBipName,
   onDataChanged,
   onEditResident,
   currentUserRole = 'user'
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRecordForDetail, setSelectedRecordForDetail] = useState(null);
+
+  // Modal State for Recording Death
+  const [selectedResidentForDeath, setSelectedResidentForDeath] = useState(null);
+  const [deathDate, setDeathDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isProcessingDeath, setIsProcessingDeath] = useState(false);
+
   const [ageGroupFilter, setAgeGroupFilter] = useState('');
   const [educationFilter, setEducationFilter] = useState('');
   const [jobFilter, setJobFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [disabilityFilter, setDisabilityFilter] = useState('');
-  const [selectedRecordForDetail, setSelectedRecordForDetail] = useState(null);
+
+  const handleProcessDeathSubmit = async () => {
+    if (!selectedResidentForDeath) return;
+    setIsProcessingDeath(true);
+    try {
+      const payload = {
+        ...selectedResidentForDeath,
+        kategori: 'Meninggal',
+        domisili: selectedResidentForDeath.domisili || selectedBipName,
+        tanggalTransaksi: deathDate
+      };
+      const res = processPopulationTransaction(payload);
+      await syncTransactionToGoogleSheet(res.residentRecord || payload);
+      alert(`Data "${selectedResidentForDeath.nama}" berhasil diproses (Meninggal). Dihapus dari TAB BIP dan dicatat di TAB REKAP Meninggal.`);
+      setSelectedResidentForDeath(null);
+      if (onDataChanged) onDataChanged();
+    } catch (err) {
+      alert('Gagal memproses data meninggal: ' + err.message);
+    } finally {
+      setIsProcessingDeath(false);
+    }
+  };
 
   // Calculate list based on location selection
   const allResidents = Object.values(bipData).flat();
-  const currentList = selectedBipName === 'Semua BIP' 
-    ? allResidents 
+  const currentList = selectedBipName === 'Semua BIP'
+    ? allResidents
     : (bipData[selectedBipName] || []);
 
   // Multi-Category Filter Logic
@@ -228,8 +260,8 @@ export default function BipDatabaseView({
             </span>
 
             {activeFiltersCount > 0 && (
-              <button 
-                className="btn btn-secondary" 
+              <button
+                className="btn btn-secondary"
                 onClick={resetAllFilters}
                 style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
               >
@@ -242,8 +274,8 @@ export default function BipDatabaseView({
         {/* Search Input */}
         <div style={{ position: 'relative', width: '100%' }}>
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="form-input"
             style={{ paddingLeft: '2.75rem' }}
             placeholder="Cari kata kunci NIK, Nama Penduduk, No KK, Pekerjaan, Alamat..."
@@ -253,17 +285,17 @@ export default function BipDatabaseView({
         </div>
 
         {/* 5 Filter Category Dropdowns */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', 
-          gap: '0.875rem' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '0.875rem'
         }}>
           {/* 1. Kelompok Umur */}
           <div>
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
               Kelompok Umur
             </label>
-            <select 
+            <select
               className="form-input"
               value={ageGroupFilter}
               onChange={(e) => setAgeGroupFilter(e.target.value)}
@@ -281,7 +313,7 @@ export default function BipDatabaseView({
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
               Pendidikan
             </label>
-            <select 
+            <select
               className="form-input"
               value={educationFilter}
               onChange={(e) => setEducationFilter(e.target.value)}
@@ -299,7 +331,7 @@ export default function BipDatabaseView({
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
               Pekerjaan
             </label>
-            <select 
+            <select
               className="form-input"
               value={jobFilter}
               onChange={(e) => setJobFilter(e.target.value)}
@@ -317,7 +349,7 @@ export default function BipDatabaseView({
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
               Jenis Kelamin
             </label>
-            <select 
+            <select
               className="form-input"
               value={genderFilter}
               onChange={(e) => setGenderFilter(e.target.value)}
@@ -334,7 +366,7 @@ export default function BipDatabaseView({
             <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
               Jenis Disabilitas
             </label>
-            <select 
+            <select
               className="form-input"
               value={disabilityFilter}
               onChange={(e) => setDisabilityFilter(e.target.value)}
@@ -410,26 +442,28 @@ export default function BipDatabaseView({
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                        <button 
-                          className="btn btn-secondary"
+                        <button
+                          className="btn btn-primary"
                           style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem' }}
                           onClick={() => setSelectedRecordForDetail(item)}
                           title="Lihat Detail Lengkap 26 Kolom"
                         >
                           <Eye size={14} />
                         </button>
-
-                        <button 
-                          className="btn btn-success"
-                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
-                          onClick={() => onEditResident(item)}
-                          title="Update / Edit Data (Timpa Data)"
+                        <button
+                          className="btn"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#f87171' }}
+                          onClick={() => {
+                            setSelectedResidentForDeath(item);
+                            setDeathDate(new Date().toISOString().split('T')[0]);
+                          }}
+                          title="Catat Warga Meninggal (Hapus dari BIP & Pindah ke REKAP)"
                         >
-                          <Edit3 size={14} /> Update
+                          <UserMinus size={14} /> Meninggal
                         </button>
 
                         {currentUserRole === 'admin' && (
-                          <button 
+                          <button
                             className="btn btn-danger"
                             style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem' }}
                             onClick={() => handleDelete(item.id, item.nama)}
@@ -452,10 +486,10 @@ export default function BipDatabaseView({
       {selectedRecordForDetail && (
         <div style={{
           position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 1000,
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -469,7 +503,7 @@ export default function BipDatabaseView({
                 </h3>
                 <span className="badge badge-blue">{selectedRecordForDetail.domisili || selectedRecordForDetail.dusun}</span>
               </div>
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => setSelectedRecordForDetail(null)}
               >
@@ -506,15 +540,83 @@ export default function BipDatabaseView({
             </div>
 
             <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button 
-                className="btn btn-success"
+              <button
+                className="btn"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#f87171' }}
                 onClick={() => {
                   const rec = selectedRecordForDetail;
                   setSelectedRecordForDetail(null);
-                  onEditResident(rec);
+                  setSelectedResidentForDeath(rec);
+                  setDeathDate(new Date().toISOString().split('T')[0]);
                 }}
               >
-                <Edit3 size={16} /> Edit / Update Data Ini
+                <UserMinus size={16} /> Catat Sebagai Meninggal
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setSelectedRecordForDetail(null)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Processing Death */}
+      {selectedResidentForDeath && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem'
+        }}>
+          <div className="glass-panel" style={{ maxWidth: '520px', width: '100%', padding: '1.75rem', border: '1px solid rgba(239, 68, 68, 0.5)', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.75rem 0', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <UserMinus size={22} /> Konfirmasi Pencatatan Kematian Warga
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              Data warga di bawah ini akan <strong style={{ color: '#f87171' }}>otomatis dihapus dari TAB BIP aktif</strong> ({selectedResidentForDeath.domisili || selectedBipName}) dan <strong style={{ color: '#34d399' }}>dicatat ke TAB REKAP Meninggal</strong>.
+            </p>
+
+            <div className="glass-card" style={{ padding: '1rem', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div><strong>Nama Lengkap:</strong> {selectedResidentForDeath.nama}</div>
+              <div><strong>NIK:</strong> <code>{selectedResidentForDeath.nik}</code></div>
+              <div><strong>NO KK:</strong> <code>{selectedResidentForDeath.no_kk}</code></div>
+              <div><strong>Domisili BIP:</strong> <span className="badge badge-blue">{selectedResidentForDeath.domisili || selectedBipName}</span></div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label">TANGGAL TRANSAKSI / KEMATIAN</label>
+              <input
+                type="date"
+                className="form-input"
+                value={deathDate}
+                onChange={(e) => setDeathDate(e.target.value)}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setSelectedResidentForDeath(null)}
+                disabled={isProcessingDeath}
+              >
+                Batal
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleProcessDeathSubmit}
+                disabled={isProcessingDeath}
+                style={{ padding: '0.6rem 1.25rem', fontWeight: 700 }}
+              >
+                {isProcessingDeath ? 'Memproses...' : 'Simpan & Proses Meninggal'}
               </button>
             </div>
           </div>

@@ -24,7 +24,7 @@ export default function Sidebar({
     },
     {
       id: 'input_data',
-      label: 'Input / Update Data',
+      label: 'Input Data',
       icon: UserPlus,
       badge: '5 Kategori',
       highlight: true
@@ -65,7 +65,7 @@ export default function Sidebar({
     ] : [
       {
         id: 'external_web_link',
-        label: 'Akses Web Lainnya',
+        label: 'Web Addo',
         icon: ExternalLink,
         badge: 'Web Link',
         action: handleOpenExternalWeb

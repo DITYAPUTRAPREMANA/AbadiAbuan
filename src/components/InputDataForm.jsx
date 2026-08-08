@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Save,
   RefreshCw,
   CheckCircle,
   AlertCircle,
   UserPlus,
-  Edit3,
-  Search,
-  Building2,
-  Baby,
-  UserMinus,
   Accessibility,
-  FileSpreadsheet
+  Search,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import {
   BIP_LOCATIONS,
@@ -26,74 +23,60 @@ import {
 } from '../types/bipConstants';
 import {
   processPopulationTransaction,
-  updateResidentRecord,
   calculateAgeFromBirthdate,
   searchResidentGlobal
 } from '../services/storageService';
+import { syncTransactionToGoogleSheet } from '../services/sheetsService';
 
-export default function InputDataForm({ onTransactionSuccess, initialUpdateData = null }) {
-  const [formMode, setFormMode] = useState('INSERT'); // 'INSERT' | 'UPDATE'
-  const [editingRecordId, setEditingRecordId] = useState(null);
+const DEFAULT_FORM = {
+  kategori: 'Pindah Datang',
+  domisili: 'BIP Sala',
+  no: 1,
+  nr: '',
+  n_kk: '',
+  n_ak: '',
+  no_kk: '',
+  nik: '',
+  nama: '',
+  jenisKelamin: 'Laki-laki',
+  tempatLahir: 'Bangli',
+  tanggalLahir: '1995-01-01',
+  noAktaLahir: '',
+  agama: 'Hindu',
+  pendidikan: 'SLTA / SEDERAJAT',
+  pekerjaan: 'PETANI/PEKEBUN',
+  statusKawin: 'Belum Kawin',
+  noAktaKawin: '',
+  statusHbkel: 'Kepala Keluarga',
+  golDarah: 'O',
+  namaAyah: '',
+  namaIbu: '',
+  namaKepalaKeluarga: '',
+  alamat: '',
+  dusun: 'Sala',
+  desaKel: 'Abuan',
+  kecamatan: 'Susut',
+  disabilitas: 'Tidak Ada'
+};
 
-  // Search state for update mode
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-
-  // Form Fields matching all columns in the Excel screenshot
-  const [formData, setFormData] = useState({
-    kategori: 'Pindah Datang',
-    domisili: 'BIP Sala',
-    no: 1,
-    nr: '',
-    n_kk: '',
-    n_ak: '',
-    no_kk: '',
-    nik: '',
-    nama: '',
-    jenisKelamin: 'Laki-laki',
-    tempatLahir: 'Bangli',
-    tanggalLahir: '1995-01-01',
-    noAktaLahir: '',
-    agama: 'Hindu',
-    pendidikan: 'SLTA / SEDERAJAT',
-    pekerjaan: 'PETANI/PEKEBUN',
-    statusKawin: 'Belum Kawin',
-    noAktaKawin: '',
-    statusHbkel: 'Kepala Keluarga',
-    golDarah: 'O',
-    namaAyah: '',
-    namaIbu: '',
-    namaKepalaKeluarga: '',
-    alamat: '',
-    dusun: 'Sala',
-    desaKel: 'Abuan',
-    kecamatan: 'Susut',
-    disabilitas: 'Disabilitas Fisik'
-  });
-
+export default function InputDataForm({ onTransactionSuccess }) {
+  const [formData, setFormData] = useState({ ...DEFAULT_FORM });
   const [notification, setNotification] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Pre-fill form if initialUpdateData is passed
-  useEffect(() => {
-    if (initialUpdateData) {
-      handleSelectResidentToEdit(initialUpdateData);
-    }
-  }, [initialUpdateData]);
+  // Search state for picking existing resident (Meninggal / Pindah Keluar)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedResidentSource, setSelectedResidentSource] = useState(null);
 
   const calculatedAge = calculateAgeFromBirthdate(formData.tanggalLahir);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => {
       const next = { ...prev, [field]: value };
-      if (field === 'domisili') {
-        next.dusun = value.replace('BIP ', '');
-      }
-      if (field === 'n_ak') {
-        next.noAktaLahir = value;
-      } else if (field === 'noAktaLahir') {
-        next.n_ak = value;
-      }
+      if (field === 'domisili') next.dusun = value.replace('BIP ', '');
+      if (field === 'n_ak') next.noAktaLahir = value;
+      else if (field === 'noAktaLahir') next.n_ak = value;
       return next;
     });
   };
@@ -105,13 +88,11 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
     setSearchResults(results);
   };
 
-  const handleSelectResidentToEdit = (resident) => {
-    setFormMode('UPDATE');
-    setEditingRecordId(resident.id);
-    setFormData({
-      kategori: 'Pindah Datang',
-      domisili: resident.domisili || 'BIP Sala',
-      no: resident.no || 1,
+  const handleSelectResidentToAutofill = (resident) => {
+    setFormData(prev => ({
+      ...prev,
+      domisili: resident.domisili || resident.bipName || prev.domisili,
+      no: resident.no || prev.no,
       nr: resident.nr || '',
       n_kk: resident.n_kk || '',
       n_ak: resident.n_ak || resident.noAktaLahir || '',
@@ -136,103 +117,54 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
       dusun: resident.dusun || (resident.domisili ? resident.domisili.replace('BIP ', '') : 'Sala'),
       desaKel: resident.desaKel || 'Abuan',
       kecamatan: resident.kecamatan || 'Susut',
-      disabilitas: resident.disabilitas || 'Disabilitas Fisik'
-    });
+      disabilitas: resident.disabilitas || 'Tidak Ada'
+    }));
+
+    setSelectedResidentSource(resident);
     setSearchResults([]);
-    setNotification({
-      type: 'info',
-      message: `Data "${resident.nama}" siap diperbarui. Silakan ubah isian form lalu klik "Simpan Perubahan (Timpa Data)"`
-    });
+    setSearchQuery('');
   };
 
   const resetForm = () => {
-    setFormMode('INSERT');
-    setEditingRecordId(null);
-    setFormData({
-      kategori: 'Pindah Datang',
-      domisili: 'BIP Sala',
-      no: 1,
-      nr: '',
-      n_kk: '',
-      n_ak: '',
-      no_kk: '',
-      nik: '',
-      nama: '',
-      jenisKelamin: 'Laki-laki',
-      tempatLahir: 'Bangli',
-      tanggalLahir: '1995-01-01',
-      noAktaLahir: '',
-      agama: 'Hindu',
-      pendidikan: 'SLTA / SEDERAJAT',
-      pekerjaan: 'PETANI/PEKEBUN',
-      statusKawin: 'Belum Kawin',
-      noAktaKawin: '',
-      statusHbkel: 'Kepala Keluarga',
-      golDarah: 'O',
-      namaAyah: '',
-      namaIbu: '',
-      namaKepalaKeluarga: '',
-      alamat: '',
-      dusun: 'Sala',
-      desaKel: 'Abuan',
-      kecamatan: 'Susut',
-      disabilitas: 'Disabilitas Fisik'
-    });
+    setFormData({ ...DEFAULT_FORM });
+    setNotification(null);
+    setSelectedResidentSource(null);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setNotification(null);
 
     if (!formData.nik || formData.nik.trim().length !== 16) {
-      setNotification({
-        type: 'error',
-        message: 'NIK Wajib diisi tepat 16 Digit angka!'
-      });
+      setNotification({ type: 'error', message: 'NIK wajib diisi tepat 16 digit angka!' });
       return;
     }
-
     if (!formData.nama || !formData.nama.trim()) {
-      setNotification({
-        type: 'error',
-        message: 'Nama Lengkap Penduduk wajib diisi!'
-      });
+      setNotification({ type: 'error', message: 'Nama Lengkap wajib diisi!' });
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      if (formMode === 'UPDATE') {
-        // Overwrite / Update existing resident record
-        const result = updateResidentRecord(editingRecordId, {
-          ...formData,
-          umur: calculatedAge
-        });
+      const result = processPopulationTransaction(formData);
+      const syncRes = await syncTransactionToGoogleSheet(result.residentRecord || formData);
 
-        setNotification({
-          type: 'success',
-          message: result.message
-        });
-      } else {
-        // Insert new category transaction
-        const result = processPopulationTransaction(formData);
-        setNotification({
-          type: 'success',
-          message: result.message
-        });
+      let syncNote = '';
+      if (syncRes.synced) {
+        syncNote = ' ✅ Tersinkron ke Google Sheet';
+      } else if (syncRes.reason) {
+        syncNote = ` (Lokal ✓. ${syncRes.reason})`;
+      } else if (syncRes.error) {
+        syncNote = ` (Lokal ✓. Sheet error: ${syncRes.error})`;
       }
 
-      if (onTransactionSuccess) {
-        onTransactionSuccess();
-      }
-
+      setNotification({ type: 'success', message: result.message + syncNote });
+      if (onTransactionSuccess) onTransactionSuccess();
       resetForm();
     } catch (err) {
-      setNotification({
-        type: 'error',
-        message: err.message || 'Gagal memproses data.'
-      });
+      setNotification({ type: 'error', message: err.message || 'Gagal memproses data.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -240,523 +172,272 @@ export default function InputDataForm({ onTransactionSuccess, initialUpdateData 
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      {/* Form Mode Selector & Header */}
+      {/* Header */}
       <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              {formMode === 'INSERT' ? <UserPlus color="#10b981" /> : <Edit3 color="#3b82f6" />}
-              {formMode === 'INSERT' ? 'Form Input Data Kependudukan (5 Kategori)' : 'Form Update Data Penduduk (Timpa Data Lama)'}
-            </h2>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
-              {formMode === 'INSERT'
-                ? 'Lengkapi semua field standar kependudukan'
-                : `Memperbarui data penduduk ID: ${editingRecordId}. Data lama di BIP akan digantikan.`}
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              className={`btn ${formMode === 'INSERT' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setFormMode('INSERT')}
-            >
-              Input Baru
-            </button>
-            <button
-              className={`btn ${formMode === 'UPDATE' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setFormMode('UPDATE')}
-            >
-              Update Data Lama
-            </button>
-          </div>
-        </div>
-
-        {/* Search tool when in UPDATE mode */}
-        {formMode === 'UPDATE' && (
-          <div className="glass-card" style={{ padding: '1rem', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Search size={16} /> Cari Penduduk Yang Akan Di-update:
-            </h3>
-            <form onSubmit={handleSearchResident} style={{ display: 'flex', gap: '0.5rem' }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Ketik NIK atau Nama penduduk..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button type="submit" className="btn btn-secondary">Cari</button>
-            </form>
-
-            {searchResults.length > 0 && (
-              <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto' }}>
-                {searchResults.map(r => (
-                  <div
-                    key={r.id}
-                    style={{
-                      padding: '0.5rem 0.75rem',
-                      background: 'rgba(15, 23, 42, 0.6)',
-                      borderRadius: '8px',
-                      marginBottom: '0.35rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '0.8125rem'
-                    }}
-                  >
-                    <div>
-                      <strong>{r.nama}</strong> (NIK: {r.nik}) - <span style={{ color: '#60a5fa' }}>{r.domisili}</span>
-                    </div>
-                    <button
-                      className="btn btn-success"
-                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
-                      onClick={() => handleSelectResidentToEdit(r)}
-                    >
-                      Pilih & Load Form
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <UserPlus color="#10b981" /> Form Input Data Kependudukan
+        </h2>
+        <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
+          Lengkapi semua field standar kependudukan BIP Desa Abuan (Bisa Input Manual atau Pilih dari BIP)
+        </p>
       </div>
 
-      {/* Alert Notification */}
+      {/* Notifikasi */}
       {notification && (
         <div style={{
           padding: '1rem 1.25rem',
           borderRadius: '12px',
           marginBottom: '1.5rem',
-          background: notification.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : notification.type === 'info' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-          border: `1px solid ${notification.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : notification.type === 'info' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
-          color: notification.type === 'error' ? '#f87171' : notification.type === 'info' ? '#93c5fd' : '#34d399',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          fontSize: '0.9rem'
+          background: notification.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
+          border: `1px solid ${notification.type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
+          color: notification.type === 'error' ? '#f87171' : '#34d399',
+          display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem'
         }}>
           {notification.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
           <div style={{ flex: 1 }}>{notification.message}</div>
         </div>
       )}
 
-      {/* Main Form */}
       <form onSubmit={handleSubmit}>
-        {/* Category & Location Selectors */}
+        {/* 1. Kategori & Domisili */}
         <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#60a5fa' }}>
             1. Kategori Pencatatan & Target BIP
           </h3>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
-            {/* Kategori Input */}
             <div className="form-group">
-              <label className="form-label">KATEGORI INPUT DATA (5 Kategori)</label>
-              <select
-                className="form-select"
-                value={formData.kategori}
-                onChange={(e) => handleInputChange('kategori', e.target.value)}
-              >
+              <label className="form-label">KATEGORI INPUT DATA</label>
+              <select className="form-select" value={formData.kategori} onChange={e => handleInputChange('kategori', e.target.value)}>
                 {INPUT_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.name}>
-                    {cat.name} ({cat.description})
-                  </option>
+                  <option key={cat.id} value={cat.name}>{cat.name} ({cat.description})</option>
                 ))}
               </select>
             </div>
-
-            {/* Target BIP */}
             <div className="form-group">
-              <label className="form-label">DOMISILI TARGET BUKU INDUK PENDUDUK (BIP)</label>
-              <select
-                className="form-select"
-                value={formData.domisili}
-                onChange={(e) => handleInputChange('domisili', e.target.value)}
-              >
+              <label className="form-label">DOMISILI BIP</label>
+              <select className="form-select" value={formData.domisili} onChange={e => handleInputChange('domisili', e.target.value)}>
                 {BIP_LOCATIONS.map(bip => (
-                  <option key={bip.id} value={bip.name}>
-                    {bip.name} (Kode: {bip.code})
-                  </option>
+                  <option key={bip.id} value={bip.name}>{bip.name} (Kode: {bip.code})</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Conditional Disabilitas Selection Option */}
+          {/* Opsi Pencarian & Auto-fill Penduduk yang Ada di BIP (Khusus untuk Kategori Meninggal) */}
+          {formData.kategori === 'Meninggal' && (
+            <div className="glass-card" style={{ padding: '1.15rem', marginTop: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <label className="form-label" style={{ margin: 0, color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
+                  <Search size={16} /> Opsional: Pilih Warga Meninggal dari BIP (Auto-Fill Form) atau Isi Manual
+                </label>
+                {selectedResidentSource && (
+                  <span className="badge badge-green" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}>
+                    <UserCheck size={12} /> Terisi Otomatis: {selectedResidentSource.nama} ({selectedResidentSource.nik})
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Ketik NIK atau Nama warga yang meninggal..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button type="button" className="btn btn-secondary" onClick={handleSearchResident}>
+                  Cari Warga
+                </button>
+              </div>
+
+              {searchResults.length > 0 && (
+                <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {searchResults.map(r => (
+                    <div
+                      key={r.id}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        background: 'rgba(15, 23, 42, 0.8)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '0.8125rem'
+                      }}
+                    >
+                      <div>
+                        <strong>{r.nama}</strong> (NIK: {r.nik}) - <span style={{ color: '#60a5fa' }}>{r.domisili || r.bipName}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-success"
+                        style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                        onClick={() => handleSelectResidentToAutofill(r)}
+                      >
+                        Pilih Warga Ini
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {formData.kategori === 'Disabilitas' && (
-            <div className="glass-card" style={{ padding: '1rem', marginTop: '1rem', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+            <div className="glass-card" style={{ padding: '1rem', marginTop: '1rem', border: '1px solid rgba(245,158,11,0.4)' }}>
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Accessibility size={16} /> PILIH RAGAM / JENIS DISABILITAS
+                  <Accessibility size={16} /> JENIS DISABILITAS
                 </label>
-                <select
-                  className="form-select"
-                  value={formData.disabilitas}
-                  onChange={(e) => handleInputChange('disabilitas', e.target.value)}
-                >
-                  {DISABILITY_TYPES.map(dis => (
-                    <option key={dis} value={dis}>{dis}</option>
-                  ))}
+                <select className="form-select" value={formData.disabilitas} onChange={e => handleInputChange('disabilitas', e.target.value)}>
+                  {DISABILITY_TYPES.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </div>
           )}
         </div>
 
-        {/* Main Fields Grid matching Excel Screenshot */}
+        {/* 2. Identitas Penduduk */}
         <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: '#60a5fa' }}>
             2. Identitas Penduduk & Data Registerasi
           </h3>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-            {/* NO */}
+
             <div className="form-group">
               <label className="form-label">NO (Nomor Urut)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={formData.no}
-                onChange={(e) => handleInputChange('no', e.target.value)}
-              />
+              <input type="number" className="form-input" value={formData.no} onChange={e => handleInputChange('no', e.target.value)} />
             </div>
-
-            {/* NR */}
             <div className="form-group">
               <label className="form-label">NR (Nomor Rumah)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="cth: 001"
-                value={formData.nr}
-                onChange={(e) => handleInputChange('nr', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="cth: 001" value={formData.nr} onChange={e => handleInputChange('nr', e.target.value)} />
             </div>
-
-            {/* N KK */}
             <div className="form-group">
-              <label className="form-label">N KK (Urutan KK Dalam Rumah)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="cth: 1"
-                value={formData.n_kk}
-                onChange={(e) => handleInputChange('n_kk', e.target.value)}
-              />
+              <label className="form-label">N KK (Urutan KK dalam Rumah)</label>
+              <input type="text" className="form-input" placeholder="cth: 1" value={formData.n_kk} onChange={e => handleInputChange('n_kk', e.target.value)} />
             </div>
-
-            {/* N AK */}
             <div className="form-group">
               <label className="form-label">N AK (No. Akta Kelahiran)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nomor Akta Kelahiran"
-                value={formData.n_ak}
-                onChange={(e) => handleInputChange('n_ak', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Nomor Akta Kelahiran" value={formData.n_ak} onChange={e => handleInputChange('n_ak', e.target.value)} />
             </div>
-
-            {/* NO_KK */}
             <div className="form-group">
               <label className="form-label">NO KK (16 Digit)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="510601xxxxxxxxxx"
-                maxLength={16}
-                value={formData.no_kk}
-                onChange={(e) => handleInputChange('no_kk', e.target.value)}
-                required
-              />
+              <input type="text" className="form-input" placeholder="510601xxxxxxxxxx" maxLength={16} value={formData.no_kk} onChange={e => handleInputChange('no_kk', e.target.value)} required />
             </div>
-
-            {/* NIK */}
             <div className="form-group">
               <label className="form-label">NIK (16 Digit Wajib)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="510601xxxxxxxxxx"
-                maxLength={16}
-                value={formData.nik}
-                onChange={(e) => handleInputChange('nik', e.target.value)}
-                required
-              />
+              <input type="text" className="form-input" placeholder="510601xxxxxxxxxx" maxLength={16} value={formData.nik} onChange={e => handleInputChange('nik', e.target.value)} required />
             </div>
 
-            {/* NAMA_LENGKAP */}
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label className="form-label">NAMA LENGKAP</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nama lengkap sesuai KTP/KK"
-                value={formData.nama}
-                onChange={(e) => handleInputChange('nama', e.target.value)}
-                required
-              />
+              <input type="text" className="form-input" placeholder="Nama lengkap sesuai KTP/KK" value={formData.nama} onChange={e => handleInputChange('nama', e.target.value)} required />
             </div>
 
-            {/* JENIS_KELAMIN */}
             <div className="form-group">
               <label className="form-label">JENIS KELAMIN</label>
-              <select
-                className="form-select"
-                value={formData.jenisKelamin}
-                onChange={(e) => handleInputChange('jenisKelamin', e.target.value)}
-              >
+              <select className="form-select" value={formData.jenisKelamin} onChange={e => handleInputChange('jenisKelamin', e.target.value)}>
                 <option value="Laki-laki">Laki-laki</option>
                 <option value="Perempuan">Perempuan</option>
               </select>
             </div>
-
-            {/* TMPT_LHR */}
             <div className="form-group">
               <label className="form-label">TEMPAT LAHIR</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="cth: Bangli / Denpasar"
-                value={formData.tempatLahir}
-                onChange={(e) => handleInputChange('tempatLahir', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="cth: Bangli" value={formData.tempatLahir} onChange={e => handleInputChange('tempatLahir', e.target.value)} />
             </div>
-
-            {/* TGL_LHR */}
             <div className="form-group">
               <label className="form-label">TANGGAL LAHIR</label>
-              <input
-                type="date"
-                className="form-input"
-                value={formData.tanggalLahir}
-                onChange={(e) => handleInputChange('tanggalLahir', e.target.value)}
-                required
-              />
+              <input type="date" className="form-input" value={formData.tanggalLahir} onChange={e => handleInputChange('tanggalLahir', e.target.value)} required />
             </div>
-
-            {/* USIA (Calculated) */}
             <div className="form-group">
-              <label className="form-label">USIA (Hitung Otomatis)</label>
-              <input
-                type="text"
-                className="form-input"
-                value={`${calculatedAge} Tahun`}
-                disabled
-                style={{ opacity: 0.8, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-              />
+              <label className="form-label">USIA (Otomatis)</label>
+              <input type="text" className="form-input" value={`${calculatedAge} Tahun`} disabled style={{ opacity: 0.7, backgroundColor: 'rgba(255,255,255,0.05)' }} />
             </div>
-
-            {/* NO_AKTA_LHR */}
             <div className="form-group">
               <label className="form-label">NO AKTA KELAHIRAN</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nomor Akta Kelahiran"
-                value={formData.noAktaLahir}
-                onChange={(e) => handleInputChange('noAktaLahir', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Nomor Akta Kelahiran" value={formData.noAktaLahir} onChange={e => handleInputChange('noAktaLahir', e.target.value)} />
             </div>
 
-            {/* AGAMA */}
             <div className="form-group">
               <label className="form-label">AGAMA</label>
-              <select
-                className="form-select"
-                value={formData.agama}
-                onChange={(e) => handleInputChange('agama', e.target.value)}
-              >
-                {RELIGIONS.map(ag => (
-                  <option key={ag} value={ag}>{ag}</option>
-                ))}
+              <select className="form-select" value={formData.agama} onChange={e => handleInputChange('agama', e.target.value)}>
+                {RELIGIONS.map(ag => <option key={ag} value={ag}>{ag}</option>)}
               </select>
             </div>
-
-            {/* PENDIDIKAN */}
             <div className="form-group">
               <label className="form-label">PENDIDIKAN</label>
-              <select
-                className="form-select"
-                value={formData.pendidikan}
-                onChange={(e) => handleInputChange('pendidikan', e.target.value)}
-              >
-                {EDUCATION_LEVELS.map(edu => (
-                  <option key={edu} value={edu}>{edu}</option>
-                ))}
+              <select className="form-select" value={formData.pendidikan} onChange={e => handleInputChange('pendidikan', e.target.value)}>
+                {EDUCATION_LEVELS.map(edu => <option key={edu} value={edu}>{edu}</option>)}
               </select>
             </div>
-
-            {/* PEKERJAAN */}
             <div className="form-group">
               <label className="form-label">PEKERJAAN</label>
-              <select
-                className="form-select"
-                value={formData.pekerjaan}
-                onChange={(e) => handleInputChange('pekerjaan', e.target.value)}
-              >
-                {JOB_CATEGORIES.map(job => (
-                  <option key={job} value={job}>{job}</option>
-                ))}
+              <select className="form-select" value={formData.pekerjaan} onChange={e => handleInputChange('pekerjaan', e.target.value)}>
+                {JOB_CATEGORIES.map(job => <option key={job} value={job}>{job}</option>)}
               </select>
             </div>
-
-            {/* STATUS_KAWIN */}
             <div className="form-group">
               <label className="form-label">STATUS KAWIN</label>
-              <select
-                className="form-select"
-                value={formData.statusKawin}
-                onChange={(e) => handleInputChange('statusKawin', e.target.value)}
-              >
-                {MARITAL_STATUSES.map(st => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
+              <select className="form-select" value={formData.statusKawin} onChange={e => handleInputChange('statusKawin', e.target.value)}>
+                {MARITAL_STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
               </select>
             </div>
-
-            {/* NO_AKTA_KWN */}
             <div className="form-group">
-              <label className="form-label">NO AKTA PERKAWINAN </label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nomor Akta Perkawinan / Perceraian"
-                value={formData.noAktaKawin}
-                onChange={(e) => handleInputChange('noAktaKawin', e.target.value)}
-              />
+              <label className="form-label">NO AKTA PERKAWINAN</label>
+              <input type="text" className="form-input" placeholder="Nomor Akta Perkawinan" value={formData.noAktaKawin} onChange={e => handleInputChange('noAktaKawin', e.target.value)} />
             </div>
-
-            {/* STATUS_HBKEL */}
             <div className="form-group">
               <label className="form-label">STATUS HUBUNGAN KELUARGA</label>
-              <select
-                className="form-select"
-                value={formData.statusHbkel}
-                onChange={(e) => handleInputChange('statusHbkel', e.target.value)}
-              >
-                {FAMILY_RELATIONSHIPS.map(rel => (
-                  <option key={rel} value={rel}>{rel}</option>
-                ))}
+              <select className="form-select" value={formData.statusHbkel} onChange={e => handleInputChange('statusHbkel', e.target.value)}>
+                {FAMILY_RELATIONSHIPS.map(rel => <option key={rel} value={rel}>{rel}</option>)}
               </select>
             </div>
-
-            {/* GOL_DARAH */}
             <div className="form-group">
               <label className="form-label">GOLONGAN DARAH</label>
-              <select
-                className="form-select"
-                value={formData.golDarah}
-                onChange={(e) => handleInputChange('golDarah', e.target.value)}
-              >
-                {BLOOD_TYPES.map(gol => (
-                  <option key={gol} value={gol}>{gol}</option>
-                ))}
+              <select className="form-select" value={formData.golDarah} onChange={e => handleInputChange('golDarah', e.target.value)}>
+                {BLOOD_TYPES.map(gol => <option key={gol} value={gol}>{gol}</option>)}
               </select>
             </div>
 
-            {/* NAMA_LGKP_AYAH */}
             <div className="form-group">
               <label className="form-label">NAMA LENGKAP AYAH</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nama Ayah Kandung"
-                value={formData.namaAyah}
-                onChange={(e) => handleInputChange('namaAyah', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Nama Ayah Kandung" value={formData.namaAyah} onChange={e => handleInputChange('namaAyah', e.target.value)} />
             </div>
-
-            {/* NAMA_LGKP_IBU */}
             <div className="form-group">
               <label className="form-label">NAMA LENGKAP IBU</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nama Ibu Kandung"
-                value={formData.namaIbu}
-                onChange={(e) => handleInputChange('namaIbu', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Nama Ibu Kandung" value={formData.namaIbu} onChange={e => handleInputChange('namaIbu', e.target.value)} />
             </div>
-
-            {/* NAMA_KEPALA_KELUARGA */}
             <div className="form-group">
               <label className="form-label">NAMA KEPALA KELUARGA</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Nama Kepala Keluarga"
-                value={formData.namaKepalaKeluarga}
-                onChange={(e) => handleInputChange('namaKepalaKeluarga', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Nama Kepala Keluarga" value={formData.namaKepalaKeluarga} onChange={e => handleInputChange('namaKepalaKeluarga', e.target.value)} />
             </div>
 
-            {/* ALAMAT */}
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label className="form-label">ALAMAT LENGKAP</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Jalan, RT/RW, No. Rumah"
-                value={formData.alamat}
-                onChange={(e) => handleInputChange('alamat', e.target.value)}
-              />
+              <input type="text" className="form-input" placeholder="Jalan, RT/RW, No. Rumah" value={formData.alamat} onChange={e => handleInputChange('alamat', e.target.value)} />
             </div>
 
-            {/* DUSUN */}
             <div className="form-group">
               <label className="form-label">DUSUN</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.dusun}
-                onChange={(e) => handleInputChange('dusun', e.target.value)}
-              />
+              <input type="text" className="form-input" value={formData.dusun} onChange={e => handleInputChange('dusun', e.target.value)} />
             </div>
-
-            {/* DESA_KEL */}
             <div className="form-group">
               <label className="form-label">DESA ADAT</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.desaKel}
-                onChange={(e) => handleInputChange('desaKel', e.target.value)}
-              />
+              <input type="text" className="form-input" value={formData.desaKel} onChange={e => handleInputChange('desaKel', e.target.value)} />
             </div>
-
-            {/* KECAMATAN */}
             <div className="form-group">
               <label className="form-label">KECAMATAN</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.kecamatan}
-                onChange={(e) => handleInputChange('kecamatan', e.target.value)}
-              />
+              <input type="text" className="form-input" value={formData.kecamatan} onChange={e => handleInputChange('kecamatan', e.target.value)} />
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Tombol Aksi */}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '3rem' }}>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={resetForm}
-            style={{ padding: '0.75rem 1.5rem' }}
-          >
+          <button type="button" className="btn btn-secondary" onClick={resetForm} style={{ padding: '0.75rem 1.5rem' }}>
             <RefreshCw size={16} /> Reset Form
           </button>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isSubmitting}
-            style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}
-          >
-            <Save size={18} /> {formMode === 'INSERT' ? 'Simpan Data Baru Ke BIP' : 'Simpan Perubahan (Timpa Data Lama)'}
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting} style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}>
+            <Save size={18} /> {isSubmitting ? 'Menyimpan...' : 'Simpan Data Baru Ke BIP'}
           </button>
         </div>
       </form>

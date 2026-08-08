@@ -7,22 +7,20 @@ import {
   Building2,
   Accessibility,
   Search,
-  Edit3,
   ArrowRight,
   Database,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
 import { BIP_LOCATIONS } from '../types/bipConstants';
-import { searchResidentGlobal } from '../services/storageService';  
+import { searchResidentGlobal } from '../services/storageService';
 import PopulationGrowthChartCard from './PopulationGrowthChartCard';
 
 export default function UserDashboard({
   bipData,
   recapData,
   setActiveTab,
-  setSelectedBipName,
-  onSelectResidentForUpdate
+  setSelectedBipName
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -70,7 +68,7 @@ export default function UserDashboard({
               Dashboard Operational Petugas Data BIP
             </h2>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
-              Silakan menginput data penduduk baru atau meng-update data lama yang ada di 5 BIP Desa Abuan.
+              Silakan menginput data transaksi kependudukan pada 5 BIP Desa Abuan.
             </p>
           </div>
         </div>
@@ -150,15 +148,6 @@ export default function UserDashboard({
                           <span className={res.status === 'Aktif' ? 'badge badge-green' : 'badge badge-red'}>
                             {res.status}
                           </span>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button
-                            className="btn btn-success"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
-                            onClick={() => onSelectResidentForUpdate(res)}
-                          >
-                            <Edit3 size={14} /> Update Data Ini
-                          </button>
                         </td>
                       </tr>
                     ))}
@@ -245,7 +234,7 @@ export default function UserDashboard({
               <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Meninggal</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
-              Input kematian &amp; update status dari BIP aktif.
+              Input data kematian penduduk.
             </p>
           </div>
 
@@ -262,7 +251,7 @@ export default function UserDashboard({
               <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Disabilitas</h4>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
-              Input/update data ragam disabilitas warga.
+              Input data ragam disabilitas warga.
             </p>
           </div>
         </div>
