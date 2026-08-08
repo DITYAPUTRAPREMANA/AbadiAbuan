@@ -40,15 +40,30 @@ export default function App() {
   // Modals state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Reactive Database State
   const [bipData, setBipData] = useState({});
   const [recapData, setRecapData] = useState({});
 
-  const refreshData = () => {
+  const refreshData = async () => {
     initializeStorage();
     setBipData(getBipDatabases());
     setRecapData(getRecapDatabases());
+
+    // Auto-pull from Google Spreadsheet if Web App URL is configured
+    try {
+      setIsSyncing(true);
+      const synced = await syncFromGoogleSheetsToLocalStorage();
+      if (synced) {
+        setBipData(getBipDatabases());
+        setRecapData(getRecapDatabases());
+      }
+    } catch (err) {
+      console.warn('Auto-sync Google Sheets skipped:', err.message);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {

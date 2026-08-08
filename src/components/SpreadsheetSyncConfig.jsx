@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, Copy, Check, ExternalLink, RefreshCw, Zap, ShieldCheck, HelpCircle, UploadCloud } from 'lucide-react';
-import { getSheetsConfig, saveSheetsConfig, fetchAllFromGoogleSheet, syncAllDataToGoogleSheet } from '../services/sheetsService';
+import { getSheetsConfig, saveSheetsConfig, fetchAllFromGoogleSheet, syncAllDataToGoogleSheet, syncFromGoogleSheetsToLocalStorage } from '../services/sheetsService';
 import { getBipDatabases, getRecapDatabases } from '../services/storageService';
 import { GOOGLE_APPS_SCRIPT_CODE } from '../utils/googleAppsScriptTemplate';
 
@@ -32,11 +32,11 @@ export default function SpreadsheetSyncConfig({ onSyncCompleted }) {
     setTestResult(null);
 
     try {
-      const data = await fetchAllFromGoogleSheet();
+      await syncFromGoogleSheetsToLocalStorage();
       setTesting(false);
       setTestResult({
         success: true,
-        message: 'Koneksi ke Google Spreadsheet Berhasil & Realtime Active!'
+        message: 'Koneksi Berhasil! Seluruh data dari Google Spreadsheet telah ditarik & ditampilkan di website.'
       });
       if (onSyncCompleted) onSyncCompleted();
     } catch (err) {
